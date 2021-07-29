@@ -5,6 +5,12 @@ import lombok.Data;
 import java.util.ArrayList;
 import java.util.List;
 
+
+/**
+ * // TODO: UPDATE INFORMATION
+ * Original file from:   github project url
+ * @author Arnaldo
+ */
 @Data
 public class VnfShared {
     //Identificador del VNF

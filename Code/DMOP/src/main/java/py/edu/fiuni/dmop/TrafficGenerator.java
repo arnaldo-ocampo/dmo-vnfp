@@ -10,9 +10,9 @@ public class TrafficGenerator {
 
         Configurations.loadProperties();
         DataService.loadData();
+        
+        
         TrafficService trafficService = new TrafficService();
-
         trafficService.generateRandomtraffic(DataService.nodesMap, DataService.vnfs);
     }
-
 }
