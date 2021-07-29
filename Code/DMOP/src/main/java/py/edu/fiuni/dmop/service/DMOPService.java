@@ -10,8 +10,10 @@ import py.edu.fiuni.dmop.util.Configurations;
 
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import org.moeaframework.analysis.plot.Plot;
 
 public class DMOPService {
+
     Logger logger = Logger.getLogger(DMOPService.class);
 
     public void maoeaMetrics() {
@@ -23,15 +25,21 @@ public class DMOPService {
             logger.info("Inicio de ejecución: ");
             long inicioTotal = System.currentTimeMillis();
 
-            String[] algorithms = {"NSGAIII", "MOEAD", "RVEA"};
+            String[] algorithms = {"NSGAIII"/*, "MOEAD", "RVEA"*/};
 
             //setup the experiment
             Executor executor = new Executor()
                     .withProblemClass(ProblemService.class)
-                    .withMaxTime(600000)
+                    .withMaxTime(60000)
                     .distributeOnAllCores();
             //  .withMaxEvaluations(1000);
 
+            Analyzer analyzer = new Analyzer()
+                    .withSameProblemAs(executor)
+                    .includeHypervolume()
+                    .showStatisticalSignificance();
+
+            /* 
             Analyzer analyzer = new Analyzer()
                     .withProblemClass(ProblemService.class)
                     .includeGenerationalDistance()
@@ -43,7 +51,7 @@ public class DMOPService {
                     //.includeR2()
                     //.includeR3()
                     .showStatisticalSignificance();
-
+             */
             //run each algorithm for seeds
             for (String algorithm : algorithms) {
                 logger.info("Inicio de ejecución " + algorithm);
@@ -51,8 +59,9 @@ public class DMOPService {
 
                 int seed = 1;
                 List<NondominatedPopulation> results = executor.withAlgorithm(algorithm).runSeeds(30);
-                for (NondominatedPopulation result : results)
+                for (NondominatedPopulation result : results) {
                     logger.info("Frente pareto (seed) " + seed++ + ": " + result.size() + " soluciones");
+                }
 
                 analyzer.addAll(algorithm, results);
                 long fin = System.currentTimeMillis();
@@ -66,6 +75,11 @@ public class DMOPService {
             long fin = System.currentTimeMillis();
             logger.info("Fin Analysis " + getTime(fin - inicio));
 
+            //plot the results
+            new Plot()
+                    .add(analyzer)
+                    .show();
+
             long finTotal = System.currentTimeMillis();
             logger.info("Tiempo de ejecución Total: " + getTime(finTotal - inicioTotal));
 
@@ -76,11 +90,11 @@ public class DMOPService {
     }
 
     /**
-     * 
-     * @throws Exception 
+     *
+     * @throws Exception
      */
     public void maoeaSolutions() throws Exception {
-        
+
         Configurations.loadProperties();
         DataService.loadData();
 
@@ -94,7 +108,7 @@ public class DMOPService {
                 .withProblemClass(ProblemService.class)
                 .withAlgorithm(algorithm)
                 .distributeOnAllCores()
-                .withMaxTime(600000)
+                .withMaxTime(60000)
                 .run();
 
         long fin = System.currentTimeMillis();
@@ -110,7 +124,7 @@ public class DMOPService {
         }
 
 
-/*
+        /*
        VnfService vnfService = new VnfService();
        List<ResultGraphMap> resultGraphMaps = new ArrayList<>();
             //display the results
@@ -140,20 +154,15 @@ public class DMOPService {
              //   resultGraphMaps.add(vnfService.placementGraph(traffics, (Permutation) solution.getVariable(0)));
             }
            // logger.info(resultGraphMaps);
-*/
+         */
     }
-
 
     public String getTime(long millis) {
         return String.format("%02d:%02d:%02d",
                 TimeUnit.MILLISECONDS.toHours(millis),
-                TimeUnit.MILLISECONDS.toMinutes(millis) -
-                        TimeUnit.HOURS.toMinutes(TimeUnit.MILLISECONDS.toHours(millis)), // The change is in this line
-                TimeUnit.MILLISECONDS.toSeconds(millis) -
-                        TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(millis)));
+                TimeUnit.MILLISECONDS.toMinutes(millis)
+                - TimeUnit.HOURS.toMinutes(TimeUnit.MILLISECONDS.toHours(millis)), // The change is in this line
+                TimeUnit.MILLISECONDS.toSeconds(millis)
+                - TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(millis)));
     }
 }
-
-
-
-

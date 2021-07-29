@@ -34,6 +34,7 @@ public class VNFPlacement {
         try {
             DMOPService dmopService = new DMOPService();
             dmopService.maoeaSolutions();
+            
         } catch (Exception ex) {
             logger.fatal("ERROR", ex);            
         }
