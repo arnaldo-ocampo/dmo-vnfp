@@ -11,8 +11,8 @@ import py.edu.fiuni.dmop.util.Configurations;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-public class MaOEAService {
-    Logger logger = Logger.getLogger(MaOEAService.class);
+public class DMOPService {
+    Logger logger = Logger.getLogger(DMOPService.class);
 
     public void maoeaMetrics() {
         try {
@@ -36,12 +36,12 @@ public class MaOEAService {
                     .withProblemClass(ProblemService.class)
                     .includeGenerationalDistance()
                     .includeInvertedGenerationalDistance()
-                    .includeMaximumParetoFrontError()
-                    .includeAdditiveEpsilonIndicator()
-                    .includeSpacing()
-                    .includeR1()
-                    .includeR2()
-                    .includeR3()
+                    //.includeMaximumParetoFrontError()
+                    //.includeAdditiveEpsilonIndicator()
+                    //.includeSpacing()
+                    //.includeR1()
+                    //.includeR2()
+                    //.includeR3()
                     .showStatisticalSignificance();
 
             //run each algorithm for seeds
@@ -75,7 +75,12 @@ public class MaOEAService {
 
     }
 
+    /**
+     * 
+     * @throws Exception 
+     */
     public void maoeaSolutions() throws Exception {
+        
         Configurations.loadProperties();
         DataService.loadData();
 

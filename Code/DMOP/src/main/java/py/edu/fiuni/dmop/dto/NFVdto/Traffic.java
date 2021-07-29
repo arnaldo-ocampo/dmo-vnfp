@@ -4,6 +4,12 @@ import lombok.Data;
 import java.io.Serializable;
 import py.edu.fiuni.dmop.dto.ResultPath;
 
+/**
+ * // TODO: UPDATE INFORMATION
+ * Original file from:   github project url
+ * @author Arnaldo
+ */
+
 @Data
 public class Traffic implements Serializable {
     
@@ -36,6 +42,8 @@ public class Traffic implements Serializable {
     //Cadena de Servicio (Secuencias de VNF)
     private SFC sfc;
 
+    
+    
     //Indica si el trafico fue procesado o no
     private boolean processed;
 
@@ -64,6 +72,7 @@ public class Traffic implements Serializable {
     public Traffic() {
     }
 
+    
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder("Traffic: ");
