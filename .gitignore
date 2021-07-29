@@ -25,3 +25,5 @@ hs_err_pid*
 /Code/DMOP/target/*
 Code/DMOP/nbactions-release-profile.xml
 Code/DMOP/nbactions.xml
+
+Code/DMOP/src/main/resources/Traffic/traffics.txt
