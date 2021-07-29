@@ -23,3 +23,5 @@
 hs_err_pid*
 
 /Code/DMOP/target/*
+Code/DMOP/nbactions-release-profile.xml
+Code/DMOP/nbactions.xml
