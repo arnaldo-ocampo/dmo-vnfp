@@ -1,5 +1,6 @@
 package py.edu.fiuni.dmop.service;
 
+import com.sun.tools.javac.tree.Pretty;
 import org.apache.log4j.Logger;
 import org.moeaframework.Analyzer;
 import org.moeaframework.Executor;
@@ -11,6 +12,9 @@ import py.edu.fiuni.dmop.util.Configurations;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import org.moeaframework.analysis.plot.Plot;
+import py.edu.fiuni.dmop.decision.topsis.Alternative;
+import py.edu.fiuni.dmop.decision.topsis.Criteria;
+import py.edu.fiuni.dmop.decision.topsis.Topsis;
 
 public class DMOPService {
 
@@ -58,7 +62,7 @@ public class DMOPService {
                 long inicio = System.currentTimeMillis();
 
                 int seed = 1;
-                List<NondominatedPopulation> results = executor.withAlgorithm(algorithm).runSeeds(30);
+                List<NondominatedPopulation> results = executor.withAlgorithm(algorithm).runSeeds(3);
                 for (NondominatedPopulation result : results) {
                     logger.info("Frente pareto (seed) " + seed++ + ": " + result.size() + " soluciones");
                 }
@@ -95,6 +99,12 @@ public class DMOPService {
      */
     public void maoeaSolutions() throws Exception {
 
+        Topsis topsis = new Topsis();
+
+        Criteria bandwidth = new Criteria("Bandwidth", 0.4);
+        Criteria resources = new Criteria("Resources", 0.3);
+        Criteria energy = new Criteria("Energy", 0.3, true);
+
         Configurations.loadProperties();
         DataService.loadData();
 
@@ -112,18 +122,41 @@ public class DMOPService {
                 .run();
 
         long fin = System.currentTimeMillis();
-
         logger.info("Fin de ejecución " + algorithm);
         logger.info("Frente pareto: " + result.size() + " soluciones");
         logger.info("Tiempo de ejecución: " + getTime(fin - inicio));
 
-        logger.info("Throughput: ");
+        //logger.info("Throughput: ");
+        
+        
+        /** Init Decision Maker */
         int i = 1;
         for (Solution solution : result) {
-            logger.info(i++ + ") " + solution.getObjective(11));
+            //logger.info(i++ + ") " + solution.getObjective(11));
+
+            Alternative alt = new Alternative(("Solution Num.: ").concat(Integer.toString(i)) );
+            alt.addCriteriaValue(bandwidth, solution.getObjective(0));
+            alt.addCriteriaValue(energy, solution.getObjective(1));
+            alt.addCriteriaValue(resources, solution.getObjective(9));
+            topsis.addAlternative(alt);
+            i++;
         }
 
+        try {
+            topsis.calculateOptimalSolution();
+            Alternative topsisOptimal = topsis.getBestAlternative();
+            
+            System.out.println("The optimal solution is: " + topsisOptimal.getName());
+            System.out.println("The optimal solution score is: " + topsisOptimal.getCalculatedPerformanceScore());
+            
+            //topsis.printDetailedResults();
 
+        } catch (UnsupportedOperationException e) {
+            logger.error(e.getMessage());
+            System.err.println(e.getMessage());
+        }
+
+       
         /*
        VnfService vnfService = new VnfService();
        List<ResultGraphMap> resultGraphMaps = new ArrayList<>();

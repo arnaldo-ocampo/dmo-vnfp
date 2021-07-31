@@ -13,6 +13,6 @@ import py.edu.fiuni.dmop.decision.topsis.Alternative;
  */
 public abstract class DecisionMaker {
         
-    public abstract Alternative calculateOptimalSolution();
+    public abstract Alternative calculateOptimalSolution() throws DecisionMakerException;
     
 }

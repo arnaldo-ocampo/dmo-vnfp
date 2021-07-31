@@ -5,13 +5,11 @@
  */
 package py.edu.fiuni.dmop.decision.topsis;
 
-/*
- * 
- * @author danigpam
- * https://github.com/danigpam
- * 
+/**
+ *
+ * @author Néstor
  */
-public class TopsisIncompleteAlternativeDataException extends Exception {
+public class TopsisIncompleteAlternativeDataException extends Exception{
 
     private static final long serialVersionUID = 1L;
 
@@ -19,4 +17,5 @@ public class TopsisIncompleteAlternativeDataException extends Exception {
     public String getMessage() {
         return "Incomplete data used to calculate topsis. Ensure that all alternatives have a score for each of the same criteria.";
     }
+
 }

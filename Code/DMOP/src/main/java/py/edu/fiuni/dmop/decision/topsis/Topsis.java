@@ -11,9 +11,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-import static com.sun.xml.internal.stream.writers.XMLStreamWriterImpl.UTF_8;
+//import static com.sun.xml.internal.stream.writers.XMLStreamWriterImpl.UTF_8;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import py.edu.fiuni.dmop.decision.DecisionMakerException;
 
 /**
  *
@@ -21,8 +22,6 @@ import java.util.logging.Logger;
  */
 public class Topsis extends DecisionMaker {
 
-    
-    
     private List<Alternative> alternatives;
 
     //Attributes below are all populated from calculateOptimalSolution method
@@ -36,13 +35,21 @@ public class Topsis extends DecisionMaker {
     private double[] distancesFromIdealWorst;
     private double[] distancesFromIdealBest;
 
+    private Alternative theBestAlt;
+    private double theBestAltScore;
+
     public Topsis(List<Alternative> alternatives) {
         super();
         this.alternatives = alternatives;
+        this.theBestAlt = null;
+        this.theBestAltScore = 0;
+
     }
 
     public Topsis() {
         super();
+        this.theBestAlt = null;
+        this.theBestAltScore = 0;
     }
 
     public void addAlternative(Alternative alternative) {
@@ -64,7 +71,7 @@ public class Topsis extends DecisionMaker {
      * @return List of Alternative
      * @throws TopsisIncompleteAlternativeDataException
      */
-    public List<Alternative> calculateOptimalSolutionSortedList() throws TopsisIncompleteAlternativeDataException {
+    public void calculateOptimalSolutionList() throws TopsisIncompleteAlternativeDataException {
 
         validateData();
         populateScoreMatrix();
@@ -72,30 +79,34 @@ public class Topsis extends DecisionMaker {
         findIdealBestAndWorst();
         calculateDistancesFromIdealBestAndWorst();
         calculatePerformanceScore();
-        sortAlternativesByPerformanceScoreDesc();
-
-        return alternatives; // Sorted result from the ideal solution to the worse one.
+        //return alternatives; // Sorted result from the ideal solution to the worse one.
     }
 
-    /**
-     * Given the list of alternatives, each populated with a list of criteria
-     * values, this method will find the optimal solution, that is, which
-     * alternative has the highest closeness score to the ideal solution
-     *
-     * @return Alternative
-     * @throws TopsisIncompleteAlternativeDataException
-     */
-    /*public Alternative calculateOptimalSolution() throws TopsisIncompleteAlternativeDataException {
-        return this.calculateOptimalSolutionSortedList().get(0); // Top solution after sorting is the best score
-    }*/
-    
     @Override
-    public Alternative calculateOptimalSolution() throws UnsupportedOperationException{
+    public Alternative calculateOptimalSolution() throws DecisionMakerException {
+
         try {
-            return this.calculateOptimalSolutionSortedList().get(0);
+            this.calculateOptimalSolutionList();
+            return this.theBestAlt;
         } catch (TopsisIncompleteAlternativeDataException ex) {
             Logger.getLogger(Topsis.class.getName()).log(Level.SEVERE, null, ex);
-            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+            throw new DecisionMakerException(ex.getMessage());
+        }
+    }
+
+    public Alternative getBestAlternative() {
+        return this.theBestAlt;
+    }
+
+    public void printDetailedResults() {
+        
+        sortAlternativesByPerformanceScoreDesc();
+
+        System.out.println();
+        System.out.println("Calculated closeness to ideal solution:");
+        for (Alternative alternative : this.alternatives) {
+            System.out.println("Alternative: " + alternative.getName()
+                    + " weight: " + alternative.getCalculatedPerformanceScore());
         }
     }
 
@@ -106,6 +117,7 @@ public class Topsis extends DecisionMaker {
      * @return void
      * @throws Exception
      */
+    /*
     public void writeResultsIntoCSVFile(String path, String fileName) throws Exception {
 
         if (this.alternatives.isEmpty()) {
@@ -127,7 +139,7 @@ public class Topsis extends DecisionMaker {
 
         writer.close();
     }
-
+     */
     private void validateData() throws TopsisIncompleteAlternativeDataException {
         if (!hasNullOrEmptyAlternatives() && !hasIncompleteAlternativeCriteria()) {
             throw new TopsisIncompleteAlternativeDataException();
@@ -271,6 +283,15 @@ public class Topsis extends DecisionMaker {
         for (int a = 0; a < numberOfAlternatives; a++) {
             double performanceScore = distancesFromIdealWorst[a] / (distancesFromIdealBest[a] + distancesFromIdealWorst[a]);
             alternatives.get(a).setCalculatedPerformanceScore(performanceScore);
+
+            if (this.theBestAlt == null) {
+                this.theBestAlt = alternatives.get(a);
+            }
+
+            if (performanceScore > this.theBestAlt.getCalculatedPerformanceScore()) {
+                this.theBestAlt = alternatives.get(a);
+            }
+
         }
     }
 
@@ -313,4 +334,5 @@ public class Topsis extends DecisionMaker {
         }
         System.out.println("]");
     }
+
 }
