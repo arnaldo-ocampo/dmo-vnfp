@@ -15,6 +15,7 @@ import org.moeaframework.analysis.plot.Plot;
 import py.edu.fiuni.dmop.decision.topsis.Alternative;
 import py.edu.fiuni.dmop.decision.topsis.Criteria;
 import py.edu.fiuni.dmop.decision.topsis.Topsis;
+import py.edu.fiuni.dmop.problem.VNFPlacementProblem;
 
 public class DMOPService {
 

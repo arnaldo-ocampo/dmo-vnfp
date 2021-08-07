@@ -33,7 +33,7 @@ public class SolutionTraffic {
         sb.append(", distance=").append(distance);
         sb.append(", numberInstances=").append(numberInstances);
         sb.append(", throughput=").append(throughput);
-        sb.append('}');
+        sb.append("}");
         return sb.toString();
     }
 }

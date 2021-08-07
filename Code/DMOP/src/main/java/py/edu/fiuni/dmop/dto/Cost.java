@@ -10,7 +10,7 @@ public class Cost {
     private ShortestPath shortestPath;
     
     
-    // FIRST ATTEMPT //
+    // FIRST ATTEMPT // Initially just the two first of these
     private int delay;    
     private int numberInstances;
     private double maximunUseLink;

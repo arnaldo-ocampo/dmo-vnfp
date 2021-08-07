@@ -56,6 +56,10 @@ public class Traffic implements Serializable {
     //Cantidad de rechazos por sobrecarga en los nodos
     private int rejectNode;
 
+    /**
+     * Constructor
+     * @param traffic 
+     */
     public Traffic(Traffic traffic) {
         this.nodeOriginId = traffic.getNodeOriginId();
         this.nodeDestinyId = traffic.getNodeDestinyId();
@@ -69,6 +73,9 @@ public class Traffic implements Serializable {
         this.rejectNode = traffic.getRejectNode();
     }
 
+    /**
+     *  Default constructor
+     */
     public Traffic() {
     }
 

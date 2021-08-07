@@ -12,8 +12,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import py.edu.fiuni.dmop.util.Utility;
 
 public class TrafficService {
+
     static Logger logger = Logger.getLogger(TrafficService.class);
     public static List<Traffic> traffics = new ArrayList<>();
 
@@ -27,24 +29,24 @@ public class TrafficService {
             logger.info("Generar Tráfico: ");
 
             int i = 0;
-            for (Node node : nodesMap.values())
+            for (Node node : nodesMap.values()) {
                 nodesIdArray[i++] = node.getId();
+            }
             nodesSize = nodesIdArray.length;
 
             for (int j = 1; j <= Configurations.numberTraffic; j++) {
                 Traffic traffic = new Traffic();
-                traffic.setBandwidth(rn.nextInt
-                        (Configurations.trafficBandwidthMax - Configurations.trafficBandwidthMin + 1) + Configurations.trafficBandwidthMin);
-                traffic.setPenaltyCostSLO(rn.nextInt
-                        (Configurations.trafficPenaltySloMax - Configurations.trafficPenaltySloMin + 1) + Configurations.trafficPenaltySloMin);
+                traffic.setBandwidth(rn.nextInt(Configurations.trafficBandwidthMax - Configurations.trafficBandwidthMin + 1) + Configurations.trafficBandwidthMin);
+                traffic.setPenaltyCostSLO(rn.nextInt(Configurations.trafficPenaltySloMax - Configurations.trafficPenaltySloMin + 1) + Configurations.trafficPenaltySloMin);
                 traffic.setProcessed(false);
 
                 aux = false;
                 while (!aux) {
                     traffic.setNodeDestinyId(nodesIdArray[rn.nextInt(nodesSize)]);
                     traffic.setNodeOriginId(nodesIdArray[rn.nextInt(nodesSize)]);
-                    if (!traffic.getNodeOriginId().equals(traffic.getNodeDestinyId()))
+                    if (!traffic.getNodeOriginId().equals(traffic.getNodeDestinyId())) {
                         aux = true;
+                    }
                 }
 
                 sfcSize = rn.nextInt(Configurations.trafficSfcMax - Configurations.trafficSfcMin + 1)
@@ -81,10 +83,8 @@ public class TrafficService {
                         Traffic traffic = new Traffic();
                         traffic.setNodeOriginId(nodeOrigin.getId());
                         traffic.setNodeDestinyId(nodeDestiny.getId());
-                        traffic.setBandwidth(rn.nextInt
-                                (Configurations.trafficBandwidthMax - Configurations.trafficBandwidthMin + 1) + Configurations.trafficBandwidthMin);
-                        traffic.setPenaltyCostSLO(rn.nextInt
-                                (Configurations.trafficPenaltySloMax - Configurations.trafficPenaltySloMin + 1) + Configurations.trafficPenaltySloMin);
+                        traffic.setBandwidth(rn.nextInt(Configurations.trafficBandwidthMax - Configurations.trafficBandwidthMin + 1) + Configurations.trafficBandwidthMin);
+                        traffic.setPenaltyCostSLO(rn.nextInt(Configurations.trafficPenaltySloMax - Configurations.trafficPenaltySloMin + 1) + Configurations.trafficPenaltySloMin);
                         traffic.setProcessed(false);
 
                         sfcSize = rn.nextInt(Configurations.trafficSfcMax - Configurations.trafficSfcMin + 1) + Configurations.trafficSfcMin;
@@ -117,7 +117,7 @@ public class TrafficService {
         String trafficStringToWrite;
         Gson gson = new Gson();
         try {
-            fileOutputStream = new FileOutputStream(new File(System.getProperty("app.home") + Configurations.trafficsFileName));
+            fileOutputStream = new FileOutputStream(new File(Utility.buildFilePath(Configurations.trafficsFileName)));
             objectOutputStream = new ObjectOutputStream(fileOutputStream);
 
             for (Traffic traffic : traffics) {
@@ -128,10 +128,12 @@ public class TrafficService {
             logger.error("Error al escribir en el archivo de traficos");
             throw new Exception();
         } finally {
-            if (objectOutputStream != null)
+            if (objectOutputStream != null) {
                 objectOutputStream.close();
-            if (fileOutputStream != null)
+            }
+            if (fileOutputStream != null) {
                 fileOutputStream.close();
+            }
         }
     }
 
@@ -141,7 +143,7 @@ public class TrafficService {
         Gson gson = new Gson();
         String trafficStringRead;
         try {
-            fileInputStream = new FileInputStream(new File(System.getProperty("app.home") + Configurations.trafficsFileName));
+            fileInputStream = new FileInputStream(new File(Utility.buildFilePath(Configurations.trafficsFileName)));
             objectInputStream = new ObjectInputStream(fileInputStream);
             logger.info("Leer Tráfico: ");
             for (int i = 1; i <= Configurations.numberTraffic; i++) {
@@ -154,10 +156,12 @@ public class TrafficService {
             logger.error("Error al leer del archivo de traficos");
             throw new Exception();
         } finally {
-            if (fileInputStream != null)
+            if (fileInputStream != null) {
                 fileInputStream.close();
-            if (objectInputStream != null)
+            }
+            if (objectInputStream != null) {
                 objectInputStream.close();
+            }
         }
     }
 
@@ -166,17 +170,20 @@ public class TrafficService {
             List<GraphPath<Node, Link>> paths;
             double delayMin = 0;
 
-            KShortestPaths<Node, Link> pathInspector =
-                    new KShortestPaths<>(DataService.graph, 3, Integer.MAX_VALUE);
+            KShortestPaths<Node, Link> pathInspector
+                    = new KShortestPaths<>(DataService.graph, 3, Integer.MAX_VALUE);
 
             paths = pathInspector.getPaths(DataService.nodesMap.get(originId), DataService.nodesMap.get(destinyId));
 
-            for (Vnf vnf : sfc.getVnfs())
+            for (Vnf vnf : sfc.getVnfs()) {
                 delayMin = delayMin + DataService.vnfsShared.get(vnf.getId()).getDelay();
+            }
 
-            if (paths != null && paths.size() > 0)
-                for (Link link : paths.get(paths.size() - 1).getEdgeList())
+            if (paths != null && paths.size() > 0) {
+                for (Link link : paths.get(paths.size() - 1).getEdgeList()) {
                     delayMin = delayMin + link.getDelay();
+                }
+            }
 
             return delayMin + (delayMin * (Configurations.trafficDelayMax / 100));
         } catch (Exception e) {

@@ -18,10 +18,13 @@ public class VnfService {
 
     private Map<String, List<ShortestPath>> shortestPathMap;
     private DirectedGraph<String, KPath> graphMultiStage;
+    
     private Map<String, Node> nodesMap;
     private Map<String, Link> linksMap;
+    
     private Map<String, VnfShared> vnfSharedMap;
 
+    
     public SolutionTraffic placement(List<Traffic> traffics, Permutation permutation) {
         ObjectiveFunctionService ofs = new ObjectiveFunctionService();
         SolutionTraffic solutionTraffic;
@@ -30,7 +33,9 @@ public class VnfService {
             linksMap = loadLinkMapAux(DataService.linksMap);
 
             traffics = loadTraffics(traffics);
+            
             solution(traffics, permutation);
+            
             solutionTraffic = ofs.solutionTrafficFOs(nodesMap, linksMap, traffics, DataService.vnfsShared);
 
             return solutionTraffic;
@@ -59,6 +64,12 @@ public class VnfService {
         return null;
     }
 
+    
+    /**
+     * 
+     * @param traffics
+     * @param permutation 
+     */
     public void solution(List<Traffic> traffics, Permutation permutation) {
         ResultPath resultPath;
         Traffic traffic;
@@ -71,6 +82,8 @@ public class VnfService {
                 traffic = traffics.get(permutation.get(i));
                 traffic.setRejectLink(0);
                 traffic.setRejectNode(0);
+                
+                // 
                 graphMultiStage = createGraphtMultiStage(traffic);
                 if (graphMultiStage == null) {
                     traffic.setRejectNode(1);
@@ -95,6 +108,12 @@ public class VnfService {
         }
     }
 
+    /**
+     * 
+     * @param traffic
+     * @return
+     * @throws Exception 
+     */
     private DirectedGraph<String, KPath> createGraphtMultiStage(Traffic traffic) throws Exception {
         DirectedGraph<String, KPath> gMStage = new DefaultDirectedGraph<>(KPath.class);
         int numberStages = traffic.getSfc().getVnfs().size();
@@ -123,7 +142,10 @@ public class VnfService {
                     if (isResourceAvailableServer(node.getServer(), vnf)) {
                         //Se cambia la referencia del nodo guardando en otro objeto
                         nMSDestinyId = changeId(node.getId(), 1);
-                        if (kShortestPath != null && kShortestPath.size() > 0) {
+                        
+                        // TODO: REFACTOR CODIGO PARA SIMPLIFICAR IF ELSE
+                        
+                        if (kShortestPath != null && !kShortestPath.isEmpty()) {
                             path = new KPath(kShortestPath, traffic.getNodeOriginId() + "-" + nMSDestinyId);
 
                             //se guarda el nodo en el grafo multiestados con ID = numero de etapa y el id del nodo
@@ -421,8 +443,16 @@ public class VnfService {
         }
     }
 
+    /**
+     * HACE UNA COPIA DE LA LISTA DE TRAFICO
+     * @param traffics
+     * @return
+     * @throws Exception 
+     */
     private List<Traffic> loadTraffics(List<Traffic> traffics) throws Exception {
         List<Traffic> trafficsAux = new ArrayList<>();
+        
+        // TODO: MOVER DECLARACION DE VARIABLE DESPUES DE VERIFICAR EFECTO
         Traffic trafficAux;
         try {
             for (Traffic traffic : traffics) {
