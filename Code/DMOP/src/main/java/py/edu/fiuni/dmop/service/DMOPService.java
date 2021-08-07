@@ -34,10 +34,10 @@ public class DMOPService {
 
             //setup the experiment
             Executor executor = new Executor()
-                    .withProblemClass(ProblemService.class)
-                    .withMaxTime(60000)
-                    .distributeOnAllCores();
-            //  .withMaxEvaluations(1000);
+                    .withProblemClass(VNFPlacementProblem.class)
+                    //.withMaxTime(60000)
+                    .distributeOnAllCores()
+            .withMaxEvaluations(10000);
 
             Analyzer analyzer = new Analyzer()
                     .withSameProblemAs(executor)
@@ -46,7 +46,7 @@ public class DMOPService {
 
             /* 
             Analyzer analyzer = new Analyzer()
-                    .withProblemClass(ProblemService.class)
+                    .withProblemClass(VNFPlacementProblem.class)
                     .includeGenerationalDistance()
                     .includeInvertedGenerationalDistance()
                     //.includeMaximumParetoFrontError()
@@ -116,7 +116,7 @@ public class DMOPService {
         long inicio = System.currentTimeMillis();
 
         NondominatedPopulation result = new Executor()
-                .withProblemClass(ProblemService.class)
+                .withProblemClass(VNFPlacementProblem.class)
                 .withAlgorithm(algorithm)
                 .distributeOnAllCores()
                 .withMaxTime(60000)
