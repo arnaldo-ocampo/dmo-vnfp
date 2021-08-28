@@ -10,9 +10,16 @@ import org.moeaframework.Analyzer;
 import org.moeaframework.Executor;
 import org.moeaframework.analysis.plot.Plot;
 
+/**
+ * Class used for MOEA Framework classes testing purposes: 
+ *      Problem, Algorithm, Executor, Analyzer, Plot
+ * @author Arnaldo Ocampo
+ * @author Nestor Tapia
+ */
 public class ComparingAlgorithms {
 
     public static void main(String[] args) throws IOException {
+        
         String problem = "UF1";
         String[] algorithms = {"NSGAII", "GDE3", "eMOEA"};
 
@@ -24,6 +31,8 @@ public class ComparingAlgorithms {
         Analyzer analyzer = new Analyzer()
                 .withSameProblemAs(executor)
                 .includeHypervolume()
+                .includeAdditiveEpsilonIndicator()
+                //.includeGenerationalDistance()
                 .showStatisticalSignificance();
 
         //run each algorithm for 50 seeds
@@ -35,10 +44,7 @@ public class ComparingAlgorithms {
         //print the results
         analyzer.printAnalysis();
 
-        //plot the results
-        new Plot()
-                .add(analyzer)
-                .show();
+        // Plot the results
+        new Plot().add(analyzer).show();
     }
-
 }

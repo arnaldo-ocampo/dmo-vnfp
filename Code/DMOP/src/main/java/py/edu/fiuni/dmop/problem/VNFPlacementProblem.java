@@ -12,8 +12,7 @@ import py.edu.fiuni.dmop.service.VnfService;
 
 /**
  *
- * @author Arnaldo
- * @author Nestor
+ * @author Arnaldo Ocampo, Nestor Tapia
  */
 public class VNFPlacementProblem extends AbstractProblem {
 
@@ -24,7 +23,7 @@ public class VNFPlacementProblem extends AbstractProblem {
      * problem, defining it to include 1 decision variable and 2 objectives.
      */
     public VNFPlacementProblem() {
-        super(1, 2);
+        super(1, 8);
         traffics = TrafficService.traffics;
     }
 
@@ -44,23 +43,23 @@ public class VNFPlacementProblem extends AbstractProblem {
     }
 
     /**
-     * Extracts the decision variables from the solution, evaluates the
-     * Rosenbrock function, and saves the resulting objective value back to the
-     * solution.
+     * Extracts the decision variables from the solution, 
+     * evaluates the Virtual Network Function placement, 
+     * and saves the resulting objective values back to the solution.
      */
     @Override
     public void evaluate(Solution solution) {
         VnfService vnfService = new VnfService();
 
-        double[] objectives = new double[numberOfObjectives];
+        double[] f = new double[numberOfObjectives];
         Permutation permutation = (Permutation) solution.getVariable(0);
 
         SolutionTraffic solutions = vnfService.placement(traffics, permutation);
 
-        objectives[0] = solutions.getDelayCost();
-        objectives[1] = solutions.getNumberInstances();
+        /*objectives[0] = solutions.getDelayCost();
+        objectives[1] = solutions.getNumberInstances();*/
 
-        /*
+        
         f[0] = solutions.getBandwidth();
         f[1] = solutions.getEnergyCost();
         f[2] = solutions.getDelayCost();
@@ -69,12 +68,12 @@ public class VNFPlacementProblem extends AbstractProblem {
         f[5] = solutions.getLicencesCost();
         f[6] = solutions.getLoadTraffic();
         f[7] = solutions.getMaxUseLink();
-        f[8] = solutions.getNumberInstances();
-        f[9] = solutions.getResourcesCost();
-        f[10] = solutions.getSloCost();
-        f[11] = solutions.getThroughput();
-         */
-        solution.setObjectives(objectives);
+        //f[8] = solutions.getNumberInstances();         
+        //f[9] = solutions.getResourcesCost();
+        //f[10] = solutions.getSloCost();
+        //f[11] = solutions.getThroughput();
+         
+        solution.setObjectives(f);
     }
 
 }

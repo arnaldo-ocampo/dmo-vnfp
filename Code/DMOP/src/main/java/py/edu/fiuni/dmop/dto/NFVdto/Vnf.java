@@ -1,26 +1,33 @@
 package py.edu.fiuni.dmop.dto.NFVdto;
+
 import lombok.Data;
 
 import java.io.Serializable;
 
 @Data
 public class Vnf implements Serializable {
-        private static final long serialVersionUID = -4346254958072354423L;
-    //Identificador del VNF
-    private String id;
 
-    //Tipo del VNF
-    private String type;
+    private static final long serialVersionUID = 1L; // -4346254958072354423L;
 
-    //Requerimiento de CPU del VNF (Cantidad de Cores)
-    private int resourceCPU;
+    // VNF Id
+    private String id = null;
 
-    //Requerimiento de RAM del VNF (En GB)
-    private int resourceRAM;
+    // VNF Type
+    private String type = null;
 
-    public Vnf() {
-    }
+    // CPU Requirement of the VNF (Cores number)
+    private int resourceCPU = 0;
 
+    // RAM requirement of the VNF (In GB)
+    private int resourceRAM = 0;
+
+    /**
+     *
+     * @param id
+     * @param type
+     * @param resourceCPU
+     * @param resourceRAM
+     */
     public Vnf(String id, String type, int resourceCPU, int resourceRAM) {
         this.id = id;
         this.type = type;
@@ -28,6 +35,11 @@ public class Vnf implements Serializable {
         this.resourceRAM = resourceRAM;
     }
 
+    /**
+     * Copy constructor
+     *
+     * @param vnf The VNF to be copied
+     */
     public Vnf(Vnf vnf) {
         this.id = vnf.getId();
         this.type = vnf.getType();

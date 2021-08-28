@@ -28,7 +28,7 @@ public class VnfShared {
     //Costo de licencia del VNF (En dolares)
     private double licenceCost;
 
-    //Factor de modiicacion del VNF (En %)
+    //Factor de modificacion del VNF (En %)
     private double bandwidthFactor;
 
     //Requerimiento de CPU del VNF (Cantidad de Cores)

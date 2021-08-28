@@ -11,47 +11,61 @@ import py.edu.fiuni.dmop.dto.NFVdto.*;
 
 import java.util.*;
 import java.util.stream.Collectors;
-
+import org.graphstream.graph.Graph;
+import org.graphstream.graph.implementations.SingleGraph;
+import py.edu.fiuni.dmop.util.Utility;
 
 public class VnfService {
-    Logger logger = Logger.getLogger(VnfService.class);
+
+    private static final Logger logger = Logger.getLogger(VnfService.class);
 
     private Map<String, List<ShortestPath>> shortestPathMap;
     private DirectedGraph<String, KPath> graphMultiStage;
-    
+
     private Map<String, Node> nodesMap;
     private Map<String, Link> linksMap;
-    
+
     private Map<String, VnfShared> vnfSharedMap;
 
-    
+    /**
+     *
+     * @param traffics
+     * @param permutation
+     * @return
+     */
     public SolutionTraffic placement(List<Traffic> traffics, Permutation permutation) {
-        ObjectiveFunctionService ofs = new ObjectiveFunctionService();
-        SolutionTraffic solutionTraffic;
         try {
-            nodesMap = loadNodesMapAux(DataService.nodesMap);
-            linksMap = loadLinkMapAux(DataService.linksMap);
+            ObjectiveFunctionService ofs = new ObjectiveFunctionService();
 
-            traffics = loadTraffics(traffics);
-            
+            // makes a copy of the nodes in the current network topoloy
+            nodesMap = copyNodesMap(DataService.nodesMap);
+            // makes a copy of the links in the current network topoloy
+            linksMap = copyLinksMap(DataService.linksMap);
+            // makes a copy of the traffics received by argument
+            traffics = copyTraffics(traffics);
+
+            //
             solution(traffics, permutation);
-            
-            solutionTraffic = ofs.solutionTrafficFOs(nodesMap, linksMap, traffics, DataService.vnfsShared);
+
+            SolutionTraffic solutionTraffic = ofs.solutionTrafficFOs(nodesMap, linksMap, traffics, DataService.vnfsShared);
 
             return solutionTraffic;
+
         } catch (Exception e) {
-            logger.error("Error VNF placement: " + e.getMessage());
+            logger.error("Error on VNF placement: ", e);
+            return null;
         }
-        return null;
     }
 
     public ResultGraphMap placementGraph(List<Traffic> traffics, Permutation permutation) {
-        ResultGraphMap resultGraphMap = new ResultGraphMap();
-        try {
-            nodesMap = loadNodesMapAux(DataService.nodesMap);
-            linksMap = loadLinkMapAux(DataService.linksMap);
 
-            traffics = loadTraffics(traffics);
+        try {
+            ResultGraphMap resultGraphMap = new ResultGraphMap();
+
+            nodesMap = copyNodesMap(DataService.nodesMap);
+            linksMap = copyLinksMap(DataService.linksMap);
+            traffics = copyTraffics(traffics);
+
             solution(traffics, permutation);
 
             resultGraphMap.setNodesMap(nodesMap);
@@ -59,47 +73,51 @@ public class VnfService {
 
             return resultGraphMap;
         } catch (Exception e) {
-            logger.error("Error en placementGraph: " + e.getMessage());
+            logger.error("Error on placementGraph: ", e);
+            return null;
         }
-        return null;
     }
 
-    
     /**
-     * 
+     *
      * @param traffics
-     * @param permutation 
+     * @param permutation
      */
     public void solution(List<Traffic> traffics, Permutation permutation) {
-        ResultPath resultPath;
-        Traffic traffic;
+
         try {
             shortestPathMap = DataService.shortestPathMap;
             vnfSharedMap = DataService.vnfsShared;
 
             int count = 1;
             for (int i = 0; i < permutation.size(); i++) {
-                traffic = traffics.get(permutation.get(i));
+                Traffic traffic = traffics.get(permutation.get(i));
                 traffic.setRejectLink(0);
                 traffic.setRejectNode(0);
-                
+
                 // 
                 graphMultiStage = createGraphtMultiStage(traffic);
+
                 if (graphMultiStage == null) {
                     traffic.setRejectNode(1);
                     traffic.setProcessed(false);
                     traffic.setResultPath(null);
                     //    logger.warn(count + "- No Grafo Multi-Estados: " + "origen: " + traffic.getNodeOriginId() + ", destino: " + traffic.getNodeDestinyId());
                 } else {
-                    resultPath = provisionTraffic(traffic);
+                    //
+                    //plotGraphMultiStage(graphMultiStage);
+
+                    ResultPath resultPath = provisionTraffic(traffic);
+                    traffic.setProcessed(resultPath != null);
                     traffic.setResultPath(resultPath);
-                    if (resultPath == null) {
+
+                    /*if (resultPath == null) {
                         traffic.setProcessed(false);
                         //      logger.warn(count + "- No Solucion: " + "origen: " + traffic.getNodeOriginId() + ", destino: " + traffic.getNodeDestinyId());
                     } else {
                         traffic.setProcessed(true);
                         //    logger.info(count + "- Solucion: " + "origen: " + traffic.getNodeOriginId() + ", destino: " + traffic.getNodeDestinyId());
-                    }
+                    }*/
                 }
                 count++;
             }
@@ -109,10 +127,10 @@ public class VnfService {
     }
 
     /**
-     * 
+     *
      * @param traffic
      * @return
-     * @throws Exception 
+     * @throws Exception
      */
     private DirectedGraph<String, KPath> createGraphtMultiStage(Traffic traffic) throws Exception {
         DirectedGraph<String, KPath> gMStage = new DefaultDirectedGraph<>(KPath.class);
@@ -124,8 +142,9 @@ public class VnfService {
         Vnf vnf;
         try {
             //Se verifica si existe alguna ruta entre el origin y el destino del trafico
-            if (shortestPathMap.get(traffic.getNodeOriginId() + "-" + traffic.getNodeDestinyId()) == null)
+            if (shortestPathMap.get(traffic.getNodeOriginId() + "-" + traffic.getNodeDestinyId()) == null) {
                 return null;
+            }
 
             //Se guarda en el grafo multi estados el origen y el destino del trafico
             gMStage.addVertex(traffic.getNodeOriginId());
@@ -142,9 +161,8 @@ public class VnfService {
                     if (isResourceAvailableServer(node.getServer(), vnf)) {
                         //Se cambia la referencia del nodo guardando en otro objeto
                         nMSDestinyId = changeId(node.getId(), 1);
-                        
+
                         // TODO: REFACTOR CODIGO PARA SIMPLIFICAR IF ELSE
-                        
                         if (kShortestPath != null && !kShortestPath.isEmpty()) {
                             path = new KPath(kShortestPath, traffic.getNodeOriginId() + "-" + nMSDestinyId);
 
@@ -176,8 +194,8 @@ public class VnfService {
                     for (Node nodeDestiny : states) {
                         nMSOriginId = changeId(nodeOrigin.getId(), i);
                         nMSDestinyId = changeId(nodeDestiny.getId(), i + 1);
-                        if (isResourceAvailableServer(nodeDestiny.getServer(), vnf) &&
-                                gMStage.containsVertex(nMSOriginId)) {
+                        if (isResourceAvailableServer(nodeDestiny.getServer(), vnf)
+                                && gMStage.containsVertex(nMSOriginId)) {
                             kShortestPath = shortestPathMap.get(nodeOrigin.getId() + "-" + nodeDestiny.getId());
 
                             if (kShortestPath != null && kShortestPath.size() > 0) {
@@ -220,8 +238,9 @@ public class VnfService {
             GraphPath<String, KPath> dijkstra = dijkstraShortestPath
                     .getPath(traffic.getNodeOriginId(), traffic.getNodeDestinyId());
 
-            if (dijkstra == null)
+            if (dijkstra == null) {
                 gMStage = null;
+            }
 
             return gMStage;
         } catch (Exception e) {
@@ -231,38 +250,40 @@ public class VnfService {
     }
 
     private ResultPath provisionTraffic(Traffic traffic) throws Exception {
-        ResultPath resultPath = new ResultPath();
-        String originNodeId;
-        List<Path> pathNodeIds = new ArrayList<>();
-        List<String> serverVnf = new ArrayList<>();
 
-        double bandwidtCurrent;
-        boolean validPlacement;
         try {
-            Map<String, Node> nodesMapAux = loadNodesMapAux(nodesMap);
-            Map<String, Link> linksMapAux = loadLinkMapAux(linksMap);
-            originNodeId = traffic.getNodeOriginId();
-            bandwidtCurrent = traffic.getBandwidth();
+            ResultPath resultPath = new ResultPath();
+            List<Path> pathNodeIds = new ArrayList<>();
+            List<String> serverVnf = new ArrayList<>();
 
-            validPlacement = recursion(originNodeId, traffic, bandwidtCurrent, 0, pathNodeIds, serverVnf, nodesMapAux, linksMapAux);
+            Map<String, Node> nodesMapAux = copyNodesMap(nodesMap);
+            Map<String, Link> linksMapAux = copyLinksMap(linksMap);
+            
+            String originNodeId = traffic.getNodeOriginId();
+            double currentBandwidth = traffic.getBandwidth();
+
+            boolean validPlacement = recursion(originNodeId, traffic, currentBandwidth, 0, pathNodeIds, serverVnf, nodesMapAux, linksMapAux);
 
             if (validPlacement) {
                 resultPath.setPaths(pathNodeIds);
                 resultPath.setServerVnf(serverVnf);
                 return resultPath;
-            } else
+            } else {
                 return null;
+            }
         } catch (Exception e) {
-            logger.error("Error en el provisionTraffic:" + e.getMessage());
-            throw new Exception();
+            logger.error("Error provisioning Traffic:", e);
+            throw e;
         }
     }
 
     private boolean recursion(String originNodeId, Traffic traffic, double bandwidtCurrent, int indexVnf,
-                              List<Path> pathNodeIds, List<String> serverVnf,
-                              Map<String, Node> nodesMap, Map<String, Link> linksMap) throws Exception {
-        Map<String, Node> nodesMapAux = loadNodesMapAux(nodesMap);
-        Map<String, Link> linksMapAux = loadLinkMapAux(linksMap);
+            List<Path> pathNodeIds, List<String> serverVnf,
+            Map<String, Node> nodesMap, Map<String, Link> linksMap) throws Exception {
+        
+        Map<String, Node> nodesMapAux = copyNodesMap(nodesMap);
+        Map<String, Link> linksMapAux = copyLinksMap(linksMap);
+        
         ShortestPath shortestPath;
         List<Cost> costs;
         String destinyNodeId;
@@ -279,8 +300,9 @@ public class VnfService {
                             pathNodeIds.add(new Path(originNodeId, destinyNodeId, shortestPathLast));
                             updateGraphMap(nodesMapAux, linksMapAux);
                             return true;
-                        } else
-                            linksMapAux = loadLinkMapAux(linksMap);
+                        } else {
+                            linksMapAux = copyLinksMap(linksMap);
+                        }
                     }
                     return false;
                 }
@@ -303,21 +325,21 @@ public class VnfService {
                     serverVnf.add(destinyNodeId);
                     originNodeId = destinyNodeId;
 
-                    if (recursion(originNodeId, traffic, bandwidtCurrent, indexVnf + 1, pathNodeIds, serverVnf, nodesMapAux, linksMapAux))
+                    if (recursion(originNodeId, traffic, bandwidtCurrent, indexVnf + 1, pathNodeIds, serverVnf, nodesMapAux, linksMapAux)) {
                         return true;
-                    else {
+                    } else {
                         pathNodeIds.remove(indexVnf);
                         serverVnf.remove(indexVnf);
                     }
                 }
                 //Si no se puede colocar, se limpian los nodos y links de acuerdo a como estaban al entrar en la recursion
-                nodesMapAux = loadNodesMapAux(nodesMap);
-                linksMapAux = loadLinkMapAux(linksMap);
+                nodesMapAux = copyNodesMap(nodesMap);
+                linksMapAux = copyLinksMap(linksMap);
             }
             return false;
         } catch (Exception e) {
-            logger.error("Error en recursion:" + e.getMessage());
-            throw new Exception();
+            logger.error("Error on recursion:", e);
+            throw e;
         }
     }
 
@@ -331,13 +353,14 @@ public class VnfService {
             ramToUse = server.getResourceRAMUsed() + vnfToInstall.getResourceRAM();
             storageToUse = server.getResourceStorageUsed() + vnfToInstall.getResourceStorage();
 
-            if (cpuToUse <= server.getResourceCPU() && ramToUse <= server.getResourceRAM() &&
-                    storageToUse <= server.getResourceStorage()) {
+            if (cpuToUse <= server.getResourceCPU() && ramToUse <= server.getResourceRAM()
+                    && storageToUse <= server.getResourceStorage()) {
                 server.setResourceCPUUsed(cpuToUse);
                 server.setResourceRAMUsed(ramToUse);
                 server.setResourceStorageUsed(storageToUse);
-            } else
+            } else {
                 return null;
+            }
 
             cpuToUse = vnfToInstall.getResourceCPUUsed() + vnf.getResourceCPU();
             ramToUse = vnfToInstall.getResourceRAMUsed() + vnf.getResourceRAM();
@@ -346,8 +369,9 @@ public class VnfService {
                 vnfToInstall.setResourceCPUUsed(cpuToUse);
                 vnfToInstall.getVnfs().add(vnf);
                 return vnfToInstall;
-            } else
+            } else {
                 return null;
+            }
         } catch (Exception e) {
             logger.error("Error al instalar VNF: " + e.getMessage());
             throw new Exception();
@@ -355,8 +379,8 @@ public class VnfService {
     }
 
     private boolean isResourceAvailableLink(String nodeOriginId, String nodeDestinyId, double bandwidtCurrent,
-                                            Map<String, Link> linksMapAux, Map<String, Node> nodesMapAux,
-                                            ShortestPath shortestPath, Traffic traffic) throws Exception {
+            Map<String, Link> linksMapAux, Map<String, Node> nodesMapAux,
+            ShortestPath shortestPath, Traffic traffic) throws Exception {
         Link link;
         Node node;
         double bandwidtUsed;
@@ -373,7 +397,7 @@ public class VnfService {
                         link.setTrafficAmount(link.getTrafficAmount() + 1);
                     }
                 }
-                if (shortestPath.getLinks().size() != 0) {
+                if (!shortestPath.getLinks().isEmpty()) {
                     for (String id : shortestPath.getNodes()) {
                         node = nodesMapAux.get(id);
                         node.setTrafficAmount(node.getTrafficAmount() + 1);
@@ -382,11 +406,10 @@ public class VnfService {
             }
             return true;
         } catch (Exception e) {
-            logger.error("Error en IsResourceAvailableLink: " + e.getMessage());
-            throw new Exception();
+            logger.error("Error on IsResourceAvailableLink: ", e);
+            throw e;
         }
     }
-
 
     private boolean isResourceAvailableServer(Server server, Vnf vnf) throws Exception {
         int cpuToUse, ramToUse, storageToUse;
@@ -399,8 +422,9 @@ public class VnfService {
                     cpuToUse = vnfShared.getResourceCPUUsed() + vnf.getResourceCPU();
                     ramToUse = vnfShared.getResourceRAMUsed() + vnf.getResourceRAM();
 
-                    if (cpuToUse <= vnfShared.getResourceCPU() && ramToUse <= vnfShared.getResourceRAM())
+                    if (cpuToUse <= vnfShared.getResourceCPU() && ramToUse <= vnfShared.getResourceRAM()) {
                         return true;
+                    }
                 }
             }
             vnfToInstall = vnfSharedMap.get(vnf.getId());
@@ -408,8 +432,8 @@ public class VnfService {
             ramToUse = server.getResourceRAMUsed() + vnfToInstall.getResourceRAM();
             storageToUse = server.getResourceStorageUsed() + vnfToInstall.getResourceStorage();
 
-            return cpuToUse <= server.getResourceCPU() && ramToUse <= server.getResourceRAM() &&
-                    storageToUse <= server.getResourceStorage();
+            return cpuToUse <= server.getResourceCPU() && ramToUse <= server.getResourceRAM()
+                    && storageToUse <= server.getResourceStorage();
 
         } catch (Exception e) {
             logger.error("Error en IsResourceAvailableServer: " + e.getMessage());
@@ -421,37 +445,41 @@ public class VnfService {
         return "s" + stage + originalNodeId;
     }
 
-    private Map<String, Node> loadNodesMapAux(Map<String, Node> nodesMap) throws Exception {
-        try {
-            return nodesMap.entrySet().stream()
-                    .collect(Collectors.toMap(Map.Entry::getKey, e -> new Node(e.getValue())));
-
-        } catch (Exception e) {
-            logger.error("Error en loadNodesMapAux: " + e.getMessage());
-            throw new Exception();
-        }
-    }
-
-    private Map<String, Link> loadLinkMapAux(Map<String, Link> linksMap) throws Exception {
-        try {
-            return linksMap.entrySet().stream()
-                    .collect(Collectors.toMap(Map.Entry::getKey, e -> new Link(e.getValue())));
-
-        } catch (Exception e) {
-            logger.error("Error en loadLinkMapAux: " + e.getMessage());
-            throw new Exception();
-        }
+    /**
+     * Makes a deep copy of the Nodes map received
+     *
+     * @param nodesMap A Map of Network Graph Nodes
+     * @return A new map with a copy of every entry in the given map
+     */
+    private Map<String, Node> copyNodesMap(Map<String, Node> nodesMap) {
+        return nodesMap.entrySet().stream()
+                .collect(Collectors.toMap(Map.Entry::getKey, e -> new Node(e.getValue())));
     }
 
     /**
-     * HACE UNA COPIA DE LA LISTA DE TRAFICO
-     * @param traffics
-     * @return
-     * @throws Exception 
+     * Makes a deep copy of the Links map received
+     *
+     * @param linksMap A Map of Network Graph Links
+     * @return A new map with a copy of every entry in the given map
      */
-    private List<Traffic> loadTraffics(List<Traffic> traffics) throws Exception {
+    private Map<String, Link> copyLinksMap(Map<String, Link> linksMap) {
+        return linksMap.entrySet().stream()
+                .collect(Collectors.toMap(Map.Entry::getKey, e -> new Link(e.getValue())));
+    }
+
+    /**
+     * Makes a deep copy of the Traffics List received
+     *
+     * @param traffics A List of Network Traffics
+     * @return A new List with a copy of every Traffic instance present in the
+     * given list
+     */
+    private List<Traffic> copyTraffics(List<Traffic> traffics) {
+
+        return traffics.stream().map(m -> new Traffic(m)).collect(Collectors.toList());
+        /*
         List<Traffic> trafficsAux = new ArrayList<>();
-        
+
         // TODO: MOVER DECLARACION DE VARIABLE DESPUES DE VERIFICAR EFECTO
         Traffic trafficAux;
         try {
@@ -463,37 +491,32 @@ public class VnfService {
         } catch (Exception e) {
             logger.error("Error en loadTraffics: " + e.getMessage());
             throw new Exception();
-        }
+        }*/
     }
 
-    private void updateGraphMap(Map<String, Node> nodesMapAux, Map<String, Link> linksMapAux)
-            throws Exception {
-        try {
-            nodesMap = new HashMap<>(nodesMapAux);
-            linksMap = new HashMap<>(linksMapAux);
-        } catch (Exception e) {
-            logger.error("Error en updateGraphMap: " + e.getMessage());
-            throw new Exception();
-        }
+    private void updateGraphMap(Map<String, Node> nodes, Map<String, Link> links) {
+        nodesMap = new HashMap<>(nodes);
+        linksMap = new HashMap<>(links);
     }
 
     // Calcula el costo de todas las funciones objetivos al instalar un VNF
     private Cost calculateCosts(Vnf vnf, ShortestPath shortestPath, double bandwidtCurrent, Map<String, Node> nodesMap, Map<String, Link> linksMap) throws Exception {
         ObjectiveFunctionService ofs = new ObjectiveFunctionService();
 
-        Map<String, Node> nodesMapAux = loadNodesMapAux(nodesMap);
-        Map<String, Link> linksMapAux = loadLinkMapAux(linksMap);
+        Map<String, Node> nodesMapAux = copyNodesMap(nodesMap);
+        Map<String, Link> linksMapAux = copyLinksMap(linksMap);
 
         boolean result = isResourceAvailableGraph(vnf, nodesMapAux, linksMapAux, shortestPath, bandwidtCurrent);
 
-        if (result)
+        if (result) {
             return ofs.costTotalFOs(nodesMapAux, linksMapAux);
-        else
+        } else {
             return null;
+        }
     }
 
     private boolean isResourceAvailableGraph(Vnf vnf, Map<String, Node> nodesMapAux, Map<String, Link> linksMapAux,
-                                             ShortestPath shortestPath, double bandwidtCurrent) throws Exception {
+            ShortestPath shortestPath, double bandwidtCurrent) throws Exception {
         VnfShared vnfToInstall;
         int cpuToUse, ramToUse;
         List<VnfShared> vnfsShared;
@@ -568,13 +591,16 @@ public class VnfService {
         }
     }
 
+    
     private List<Cost> normalizeCosts(Vnf vnf,
-                                      String originNodeId, double bandwidtCurrent, Map<String, Node> nodesMap, Map<String, Link> linksMap) throws Exception {
+            String originNodeId, double bandwidtCurrent, Map<String, Node> nodesMap, Map<String, Link> linksMap) throws Exception {
+        
         Set<KPath> links = graphMultiStage.outgoingEdgesOf(originNodeId);
         String destinyNodeId;
         ShortestPath shortestPath;
         List<ShortestPath> kShortestPath;
         List<Cost> costs = new ArrayList<>();
+        
         for (KPath kPath : links) {
             destinyNodeId = graphMultiStage.getEdgeTarget(kPath);
             kShortestPath = kPath.getKShortestPath();
@@ -589,7 +615,7 @@ public class VnfService {
             }
         }
 
-        if (costs.size() > 0) {
+        if (!costs.isEmpty()) {
             double maxEnergy = costs.stream().mapToDouble(Cost::getEnergy)
                     .max().orElseThrow(NoSuchElementException::new);
             double minEnergy = costs.stream().mapToDouble(Cost::getEnergy)
@@ -636,19 +662,19 @@ public class VnfService {
                     .min().orElseThrow(NoSuchElementException::new);
 
             for (Cost cost : costs) {
-                double normalizedEnergy = normalize(cost.getEnergy(), maxEnergy, minEnergy);
-                double normalizedBandwidth = normalize(cost.getBandwidth(), maxBandwidth, minBandwidth);
-                double normalizedDelay = normalize(cost.getDelay(), maxDelay, minDelay);
-                double normalizedDistance = normalize(cost.getDistance(), maxDistance, minDistance);
-                double normalizedInstances = normalize(cost.getNumberInstances(), maxInstances, minInstances);
-                double normalizedResources = normalize(cost.getResources(), maxResources, minResources);
-                double normalizedLicences = normalize(cost.getLicences(), maxLicences, minLicences);
-                double normalizedFragmentation = normalize(cost.getFragmentation(), maxFragmentation, minFragmentation);
-                double normalizedMaximunUseLink = normalize(cost.getMaximunUseLink(), maxMaximunUseLink, minMaximunUseLink);
+                double normalizedEnergy = Utility.normalizeValue(cost.getEnergy(), maxEnergy, minEnergy);
+                double normalizedBandwidth = Utility.normalizeValue(cost.getBandwidth(), maxBandwidth, minBandwidth);
+                double normalizedDelay = Utility.normalizeValue(cost.getDelay(), maxDelay, minDelay);
+                double normalizedDistance = Utility.normalizeValue(cost.getDistance(), maxDistance, minDistance);
+                double normalizedInstances = Utility.normalizeValue(cost.getNumberInstances(), maxInstances, minInstances);
+                double normalizedResources = Utility.normalizeValue(cost.getResources(), maxResources, minResources);
+                double normalizedLicences = Utility.normalizeValue(cost.getLicences(), maxLicences, minLicences);
+                double normalizedFragmentation = Utility.normalizeValue(cost.getFragmentation(), maxFragmentation, minFragmentation);
+                double normalizedMaximunUseLink = Utility.normalizeValue(cost.getMaximunUseLink(), maxMaximunUseLink, minMaximunUseLink);
 
-                double costNormalized = normalizedEnergy + normalizedBandwidth + normalizedDelay +
-                        normalizedDistance + normalizedInstances + normalizedResources + normalizedLicences +
-                        normalizedFragmentation + normalizedMaximunUseLink;
+                double costNormalized = normalizedEnergy + normalizedBandwidth + normalizedDelay
+                        + normalizedDistance + normalizedInstances + normalizedResources + normalizedLicences
+                        + normalizedFragmentation + normalizedMaximunUseLink;
 
                 cost.setCostNormalized(costNormalized / 9);
             }
@@ -657,11 +683,55 @@ public class VnfService {
         return costs;
     }
 
-    private double normalize(double x, double max, double min) {
-        if (max == min)
-            return 0;
-        return (x - min) / (max - min);
+    private void plotMultiStageGraph(DirectedGraph<String, KPath> graphMultiStage) {
+
+        Set<String> nodes = new HashSet();
+        Set<String> links = new HashSet();
+
+        System.setProperty("org.graphstream.ui", "swing");
+        Graph graph = new SingleGraph("MutiStage Graph");
+        graph.setAttribute("ui.stylesheet", "node {shape: box; size: 45px, 20px; fill-mode: plain; fill-color: lightgrey; stroke-mode: plain; stroke-color: #333;}");
+
+        // Adds every node to the graph
+        graphMultiStage.vertexSet().forEach(n -> {
+            //graph.addNode(n);
+            nodes.add(n);
+        });
+
+        graphMultiStage.edgeSet().forEach(kpath -> {
+            kpath.getKShortestPath().forEach(ksp -> {
+                ksp.getNodes().forEach(n -> {
+                    //graph.addNode(n);
+                    nodes.add(n);
+                });
+                ksp.getLinks().forEach(link -> {
+                    String linkId = link;
+                    String nodesId = linkId.substring(0, linkId.indexOf("/"));
+                    //String[] ids = nodesId.split("-");
+
+                    links.add(nodesId);
+
+                    //graph.addEdge(nodesId, ids[0], ids[1]);
+                });
+            });
+        });
+
+        // Addd every node to the graph
+        nodes.forEach(nodeId -> {
+            graph.addNode(nodeId);
+        });
+
+        // Adds every edge (link) between neighbour nodes to the graph
+        links.forEach(link -> {
+            String[] ids = link.split("-");
+            graph.addEdge(link, ids[0], ids[1]);
+        });
+
+        // Configure the graph to show a label next to every node
+        for (org.graphstream.graph.Node node : graph) {
+            node.setAttribute("ui.label", node.getId());
+        }
+
+        graph.display();
     }
-
 }
-

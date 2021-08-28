@@ -13,8 +13,10 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.util.*;
 import py.edu.fiuni.dmop.dto.NFVdto.Node;
+import py.edu.fiuni.dmop.util.Utility;
 
 public class DataService {
+
     private static Logger logger = Logger.getLogger(DataService.class);
 
     private static List<String> linksString;
@@ -27,13 +29,9 @@ public class DataService {
     public static List<Vnf> vnfs = new ArrayList<>();
     public static Map<String, Server> servers = new HashMap<>();
 
-    public DataService() throws Exception {
-        loadData();
-    }
-
     public static void loadData() throws Exception {
         try {
-            logger.info("Valores iniciales: ");
+            logger.info("Loading initial data: ");
             loadVnfsShared();
             loadVnfs();
             loadServers();
@@ -41,30 +39,25 @@ public class DataService {
             loadLinks();
             loadGraph();
             kShortestPath();
-
         } catch (Exception e) {
-            logger.error("Error al cargar los datos: " + e.getMessage());
-            throw new Exception();
+            logger.error("Error loading initial data: ", e);
+            throw e;
         }
     }
 
-
     private static void loadVnfsShared() throws Exception {
-        BufferedReader reader = null;
-        VnfShared vnfShared;
-        String vnfLine;
-        String[] vnfSplit;
 
+        String strVNF = null;
+        String[] vnfSplit;
         logger.info("VNFs: ");
-        try {
-            reader = new BufferedReader(new FileReader(System.getProperty("app.home") + Configurations.vnfsShareFileName));
+        try (BufferedReader reader = new BufferedReader(new FileReader(Utility.buildFilePath(Configurations.vnfsShareFileName)))) {
 
             int i = 1;
             reader.readLine();
-            while ((vnfLine = reader.readLine()) != null) {
-                vnfSplit = vnfLine.split(" ");
+            while ((strVNF = reader.readLine()) != null) {
+                vnfSplit = strVNF.split(" ");
 
-                vnfShared = new VnfShared();
+                VnfShared vnfShared = new VnfShared();
                 vnfShared.setId(vnfSplit[0]);
                 vnfShared.setDelay(Integer.parseInt(vnfSplit[1]));
                 vnfShared.setDeploy(Integer.parseInt(vnfSplit[2]));
@@ -74,75 +67,58 @@ public class DataService {
                 vnfShared.setResourceRAM(Integer.parseInt(vnfSplit[6]));
                 vnfShared.setResourceStorage(Integer.parseInt(vnfSplit[7]));
 
-                logger.info(i++ + " " + vnfShared.toString());
                 vnfsShared.put(vnfShared.getId(), vnfShared);
+                logger.info(i++ + " " + vnfShared.toString());
             }
 
         } catch (NumberFormatException e) {
-            logger.error("Error al parsear los datos de los VNFs: " + e.getMessage());
-            throw new Exception();
+            logger.error("Error parsing VNFs data: ", e);
+            throw e;
         } catch (Exception e) {
-            logger.error("Error al cargar los datos de los VNFs Shared:" + e.getMessage());
-            throw new Exception();
-        } finally {
-            if (reader != null)
-                reader.close();
+            logger.error("Error on loading Shated VNFs data:", e);
+            throw e;
         }
     }
 
     private static void loadVnfs() throws Exception {
-        BufferedReader reader = null;
-        Vnf vnf;
-        String vnfLine;
+
         String[] vnfSplit;
         logger.info("VNFs: ");
-        try {
-            reader = new BufferedReader(new FileReader(System.getProperty("app.home") + Configurations.vnfsSfcFileName));
+        try (BufferedReader reader = new BufferedReader(new FileReader(Utility.buildFilePath(Configurations.vnfsSfcFileName)))) {
 
             int i = 1;
-            reader.readLine();
+            // read first line (header)
+            String vnfLine = reader.readLine();
             while ((vnfLine = reader.readLine()) != null) {
                 vnfSplit = vnfLine.split(" ");
 
-                vnf = new Vnf();
-                vnf.setId(vnfSplit[0]);
-                vnf.setType(vnfSplit[1]);
-                vnf.setResourceCPU(Integer.parseInt(vnfSplit[2]));
-                vnf.setResourceRAM(Integer.parseInt(vnfSplit[3]));
-
-                logger.info(i++ + " " + vnf.toString());
+                Vnf vnf = new Vnf(vnfSplit[0], vnfSplit[1], Integer.parseInt(vnfSplit[2]), Integer.parseInt(vnfSplit[3]));
                 vnfs.add(vnf);
+                logger.info(i++ + " " + vnf.toString());
             }
 
         } catch (NumberFormatException e) {
-            logger.error("Error al parsear los datos de los VNFs: " + e.getMessage());
-            throw new Exception();
+            logger.error("Error al parsear los datos de los VNFs: ", e);
+            throw e;
         } catch (Exception e) {
-            logger.error("Error al cargar los datos de los VNFs:" + e.getMessage());
-            throw new Exception();
-        } finally {
-            if (reader != null)
-                reader.close();
+            logger.error("Error al cargar los datos de los VNFs:", e);
+            throw e;
         }
     }
 
-
     private static void loadServers() throws Exception {
-        BufferedReader reader = null;
-        Server server;
-        String serverLine;
+
         String[] serverSplit;
         logger.info("Servidores: ");
-        try {
-            reader = new BufferedReader(new FileReader(System.getProperty("app.home") +
-                    Configurations.networkPackage + Configurations.serversFileName));
+        try (BufferedReader reader = new BufferedReader(new FileReader(Utility.buildFilePath(Configurations.networkPackage + Configurations.serversFileName)))) {
 
             int i = 1;
-            reader.readLine();
+            // Read first line from the file (header)
+            String serverLine = reader.readLine();
             while ((serverLine = reader.readLine()) != null) {
                 serverSplit = serverLine.split(" ");
 
-                server = new Server();
+                Server server = new Server();
                 server.setId(serverSplit[0].trim());
                 server.setLicenceCost(Integer.parseInt(serverSplit[1]));
                 server.setDeploy(Integer.parseInt(serverSplit[2]));
@@ -155,93 +131,77 @@ public class DataService {
                 server.setEnergyIdleWatts(Integer.parseInt(serverSplit[9]));
                 server.setEnergyPeakWatts(Integer.parseInt(serverSplit[10]));
 
-                logger.info(i++ + " " + server.toString());
                 servers.put(server.getId(), server);
+                logger.info(i++ + " " + server.toString());
             }
 
         } catch (NumberFormatException e) {
-            logger.error("Error al parsear los datos de los Servidores: " + e.getMessage());
-            throw new Exception();
+            logger.error("Error al parsear los datos de los Servidores: ", e);
+            throw e;
         } catch (Exception e) {
-            logger.error("Error al cargar los datos de los Servidores: " + e.getMessage());
-            throw new Exception();
-        } finally {
-            if (reader != null)
-                reader.close();
+            logger.error("Error al cargar los datos de los Servidores: ", e);
+            throw e;
         }
     }
 
-
     private static void loadNodes() throws Exception {
-        BufferedReader reader = null;
-        Node node;
-        String nodeString;
+
         String[] splitNode;
         logger.info("Nodos: ");
-        try {
-            reader = new BufferedReader(new FileReader(System.getProperty("app.home") +
-                    Configurations.networkPackage + Configurations.nodesFileName));
+        try (BufferedReader reader = new BufferedReader(new FileReader(Utility.buildFilePath(Configurations.networkPackage + Configurations.nodesFileName)))) {
 
             int i = 1;
-            reader.readLine();
+            // Read first line from the file (header)
+            String nodeString = reader.readLine();
             while ((nodeString = reader.readLine()) != null) {
                 splitNode = nodeString.split(" ");
 
-                node = new Node();
+                Node node = new Node();
                 node.setId(splitNode[0].trim());
                 node.setEnergyCost(Double.parseDouble(splitNode[1].trim()));
                 node.setServer(servers.get(splitNode[2].trim()));
 
-                logger.info(i++ + " " + node.toString());
                 nodesMap.put(node.getId(), node);
                 nodes.put(node.getId(), node);
+                logger.info(i++ + " " + node.toString());
             }
 
         } catch (NumberFormatException e) {
-            logger.error("Error al parsear los datos de los Nodos: " + e.getMessage());
-            throw new Exception();
+            logger.error("Error al parsear los datos de los Nodos: ", e);
+            throw e;
         } catch (Exception e) {
-            logger.error("Error al cargar los datos de los Nodos: " + e.getMessage());
-            throw new Exception();
-        } finally {
-            if (reader != null)
-                reader.close();
+            logger.error("Error al cargar los datos de los Nodos: ", e);
+            throw e;
         }
     }
 
     private static void loadLinks() throws Exception {
-        BufferedReader reader = null;
-        String linkLine;
-        try {
-            reader = new BufferedReader(new FileReader(System.getProperty("app.home") +
-                    Configurations.networkPackage + Configurations.linksFileName));
 
-            reader.readLine();
+        try (BufferedReader reader = new BufferedReader(new FileReader(Utility.buildFilePath(Configurations.networkPackage + Configurations.linksFileName)))) {
+
+            String linkLine = reader.readLine();
             linksString = new ArrayList<>();
-            while ((linkLine = reader.readLine()) != null)
+            while ((linkLine = reader.readLine()) != null) {
                 linksString.add(linkLine.trim());
-
+            }
         } catch (Exception e) {
-            logger.error("Error al cargar las matrices: " + e.getMessage());
-            throw new Exception();
-        } finally {
-            if (reader != null)
-                reader.close();
+            logger.error("Error on loading loading: ", e);
+            throw e;
         }
     }
 
     private static void loadGraph() throws Exception {
-        Link link;
         try {
-            for (Node node : nodes.values())
+            for (Node node : nodes.values()) {
                 graph.addVertex(node);
+            }
 
             logger.info("Enlaces: ");
             int i = 1;
             for (String linkString : linksString) {
                 String[] linkSplit = linkString.split(" ");
 
-                link = new Link();
+                Link link = new Link();
                 link.setId(linkSplit[0] + "-" + linkSplit[1] + "/" + linkSplit[1] + "-" + linkSplit[0]);
                 link.setDelay(Integer.parseInt(linkSplit[2]));
                 link.setDistance(Integer.parseInt(linkSplit[3]));
@@ -252,23 +212,28 @@ public class DataService {
                 logger.info(i++ + " " + link.toString());
                 graph.addEdge(nodes.get(linkSplit[0]), nodes.get(linkSplit[1]), link);
             }
-            logger.info("Grafo: ");
+            logger.info("Graph: ");
             logger.info(graph.toString());
         } catch (Exception e) {
-            logger.error("Error al cargar el Grafo: " + e.getMessage());
-            throw new Exception();
+            logger.error("Error on loading graph: ", e);
+            throw e;
         }
     }
 
-    //Obtiene los k caminos mas cortos(por cantidad de saltos), de cada par de nodos
+    /**
+     * Obtiene los k caminos mas cortos(por cantidad de saltos), de cada par de
+     * nodos
+     *
+     * @throws Exception
+     */
     private static void kShortestPath() throws Exception {
         try {
-            KShortestPaths<Node, Link> pathInspector =
-                    new KShortestPaths<>(graph, Configurations.k, Integer.MAX_VALUE);
+            KShortestPaths<Node, Link> pathInspector
+                    = new KShortestPaths<>(graph, Configurations.k, Integer.MAX_VALUE);
             List<GraphPath<Node, Link>> paths;
             List<ShortestPath> kShortestPath;
             String nodeString, linkString;
-            for (Node origin : nodes.values())
+            for (Node origin : nodes.values()) {
                 for (Node destiny : nodes.values()) {
                     if (!origin.equals(destiny)) {
                         kShortestPath = new ArrayList<>();
@@ -293,10 +258,10 @@ public class DataService {
                         shortestPathMap.put(origin.getId() + "-" + destiny.getId(), kShortestPath);
                     }
                 }
-
+            }
         } catch (Exception e) {
-            logger.error("Error al cargar kShortestPath: " + e.getMessage());
-            throw new Exception();
+            logger.error("Error on loading kShortestPath: ", e);
+            throw e;
         }
     }
 }

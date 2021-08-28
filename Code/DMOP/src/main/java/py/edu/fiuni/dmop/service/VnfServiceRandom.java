@@ -37,9 +37,9 @@ public class VnfServiceRandom {
                 traffics = TrafficService.readTraffics();
             else
                 if (Configurations.trafficsRandom)
-                    traffics = trafficService.generateRandomtraffic(DataService.nodesMap, DataService.vnfs);
+                    traffics = trafficService.generateRandomTraffic(DataService.nodesMap, DataService.vnfs);
                 else
-                    traffics = trafficService.generateAllToAlltraffic(DataService.nodesMap, DataService.vnfs);
+                    traffics = trafficService.generateAllToAllTraffic(DataService.nodesMap, DataService.vnfs);
 
             for (int i = 1; i <= Configurations.numberSolutions; i++) {
                 nodesMap = loadNodesMapAux(DataService.nodesMap);

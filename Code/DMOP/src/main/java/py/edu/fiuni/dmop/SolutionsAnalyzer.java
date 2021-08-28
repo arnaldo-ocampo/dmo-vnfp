@@ -8,7 +8,8 @@ public class SolutionsAnalyzer {
     public static void main(String[] args) throws Exception {
  
         DMOPService dmopService = new DMOPService();
-        dmopService.maoeaMetrics();
+        //dmopService.moeaMetrics();
+        dmopService.moeaSolutions();
     }
 
 }

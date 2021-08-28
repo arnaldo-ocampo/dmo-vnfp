@@ -2,16 +2,17 @@ package py.edu.fiuni.dmop.util;
 
 import org.apache.log4j.Logger;
 
-
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
 
 public class Configurations {
-    static Logger logger = Logger.getLogger(Configurations.class);
 
-    //Parametros de Sistema
+    private static final Logger logger = Logger.getLogger(Configurations.class);
+
+    //System params
+    public static String problemPackage;
     public static String networkPackage;
     public static String linksFileName;
     public static String nodesFileName;
@@ -30,7 +31,7 @@ public class Configurations {
     public static double serverPenaltyStorageCost;
     public static double linkPenaltyBandwidthCost;
 
-    //Trafico
+    //Traffic
     public static boolean trafficsReadFile;
     public static boolean trafficsRandom;
     public static int trafficBandwidthMin;
@@ -41,18 +42,27 @@ public class Configurations {
     public static int trafficSfcMin;
     public static int trafficSfcMax;
 
+    // MCDM Params
+    public static String pythonInterpreter;
+    public static String pythonScript;
+    public static String pythonLogPath;
+    
+    
+     
+
     public Configurations() throws Exception {
         loadProperties();
     }
 
     public static void loadProperties() throws Exception {
-        try (InputStream input = new FileInputStream(System.getProperty("app.home") + "/vnf_placement.properties")) {
+
+        try (InputStream input = new FileInputStream(Utility.buildFilePath("/vnf_placement.properties"))) {
 
             Properties prop = new Properties();
-
             prop.load(input);
 
-            //Parametros de Sistema
+            //System params
+            problemPackage = prop.getProperty("problem.package");
             networkPackage = prop.getProperty("network.package");
             linksFileName = prop.getProperty("file.name.links");
             nodesFileName = prop.getProperty("file.name.nodes");
@@ -71,7 +81,7 @@ public class Configurations {
             serverPenaltyStorageCost = Double.parseDouble(prop.getProperty("server.penalty.storage.cost"));
             linkPenaltyBandwidthCost = Double.parseDouble(prop.getProperty("link.penalty.bandwidth.cost"));
 
-            //Trafico
+            //Traffic
             trafficsReadFile = Boolean.parseBoolean(prop.getProperty("traffics.read.file"));
             trafficsRandom = Boolean.parseBoolean(prop.getProperty("traffics.random"));
             trafficBandwidthMin = Integer.parseInt(prop.getProperty("traffic.bandwidth.min"));
@@ -82,13 +92,13 @@ public class Configurations {
             trafficSfcMin = Integer.parseInt(prop.getProperty("traffic.sfc.min"));
             trafficSfcMax = Integer.parseInt(prop.getProperty("traffic.sfc.max"));
 
+            pythonInterpreter = prop.getProperty("python.interpreter.path");
+            pythonScript = prop.getProperty("python.script.filepath");
+            pythonLogPath = prop.getProperty("python.script.logfile");
+
         } catch (IOException ex) {
-            logger.error("Error al cargar los datos del properties:" + ex.getMessage());
-            throw new Exception();
+            logger.error("Error on loading properties data:", ex);
+            throw ex;
         }
     }
-
-
-
-
 }

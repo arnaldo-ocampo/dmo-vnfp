@@ -8,6 +8,7 @@ import py.edu.fiuni.dmop.util.Configurations;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.ObjectOutputStream;
+import java.io.PrintWriter;
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
@@ -15,16 +16,16 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-
-
+import py.edu.fiuni.dmop.util.Utility;
 
 public class ObjectiveFunctionService {
-    Logger logger = Logger.getLogger(ObjectiveFunctionService.class);
+
+    private static final Logger logger = Logger.getLogger(ObjectiveFunctionService.class);
 
     Solutions solutions = new Solutions();
 
     public void solutionFOs(Map<String, Node> nodesMap, Map<String, Link> linksMap,
-                                 List<Traffic> traffics, Map<String, VnfShared> vnfsShared) throws Exception {
+            List<Traffic> traffics, Map<String, VnfShared> vnfsShared) throws Exception {
 
         DecimalFormat decimalFormat = new DecimalFormat("#.###");
         decimalFormat.setRoundingMode(RoundingMode.CEILING);
@@ -33,9 +34,11 @@ public class ObjectiveFunctionService {
         List<Node> nodes = new ArrayList<>(nodesMap.values());
         List<Link> links = new ArrayList<>(linksMap.values());
 
-        for(Node node : nodes)
-            if(node.getServer()!=null && node.getServer().getVnfs().size() > 0)
+        for (Node node : nodes) {
+            if (node.getServer() != null && node.getServer().getVnfs().size() > 0) {
                 servers.add(node.getServer());
+            }
+        }
 
         solutions.getEnergyCostList().add(decimalFormat.format(
                 calculateEnergyCost(nodes)));
@@ -48,7 +51,7 @@ public class ObjectiveFunctionService {
         solutions.getHopsList().add(calculateHops(links));
         solutions.getBandwidthList().add(decimalFormat.format(calculateBandwidth(links)));
         solutions.getNumberInstancesList().add(calculateNumberIntances(servers));
-        solutions.getLoadTrafficList().add(decimalFormat.format(calculateLoadTraffic(linksMap,traffics,vnfsShared)));
+        solutions.getLoadTrafficList().add(decimalFormat.format(calculateLoadTraffic(linksMap, traffics, vnfsShared)));
         solutions.getResourcesCostList().add(decimalFormat.format(calculateResources(servers)));
         solutions.getLicencesCostList().add(decimalFormat.format(calculateLicencesCost(servers)));
         solutions.getFragmentationList().add(decimalFormat.format(calculateResourceFragmentation(servers, links)));
@@ -69,7 +72,7 @@ public class ObjectiveFunctionService {
         Server server;
         try {
 
-            for (Node node : nodes){
+            for (Node node : nodes) {
                 //Costo monetario de energia de los nodos que se encuentran
                 // en la ruta por la cantidad de flujos que pasan por el nodo
                 energyCost = energyCost + node.getEnergyCost() * node.getTrafficAmount();
@@ -78,10 +81,10 @@ public class ObjectiveFunctionService {
                 server = node.getServer();
                 if (server != null && server.getVnfs().size() > 0) {
                     double proportionCpu = (double) server.getResourceCPUUsed() / server.getResourceCPU();
-                    energyCost = energyCost +
-                            (server.getEnergyIdleWatts()
-                                    + (server.getEnergyPeakWatts() - server.getEnergyIdleWatts()) * proportionCpu)
-                                    * node.getEnergyCost();
+                    energyCost = energyCost
+                            + (server.getEnergyIdleWatts()
+                            + (server.getEnergyPeakWatts() - server.getEnergyIdleWatts()) * proportionCpu)
+                            * node.getEnergyCost();
                 }
             }
 
@@ -99,8 +102,9 @@ public class ObjectiveFunctionService {
         double linksCost = 0;
         try {
             //suma del costo unitario * Ancho de banda utilizado
-            for (Link link : links)
+            for (Link link : links) {
                 linksCost = linksCost + (link.getBandwidthUsed() * link.getBandwidthCost());
+            }
 
             return linksCost;
         } catch (Exception e) {
@@ -122,14 +126,18 @@ public class ObjectiveFunctionService {
         int latency = 0;
         try {
             //Suma del delay de procesamiento de cada VNF instalado y compartido
-            for (Server server : servers)
-                for(List<VnfShared> vnfsShared : server.getVnfs().values())
-                    for(VnfShared vnfShared : vnfsShared)
+            for (Server server : servers) {
+                for (List<VnfShared> vnfsShared : server.getVnfs().values()) {
+                    for (VnfShared vnfShared : vnfsShared) {
                         latency = latency + vnfShared.getDelay() * vnfShared.getVnfs().size();
+                    }
+                }
+            }
 
             //Suma del delay de cada enlace de la ruta
-            for (Link link : links)
+            for (Link link : links) {
                 latency = latency + (link.getDelay() * link.getTrafficAmount());
+            }
 
             return latency;
         } catch (Exception e) {
@@ -142,10 +150,13 @@ public class ObjectiveFunctionService {
         int deployCost = 0;
         try {
             //Suma del costo de deployar los VNFs en los servidores
-            for (Server server : servers)
-                for(List<VnfShared> vnfsShared : server.getVnfs().values())
-                    for(VnfShared vnfShared : vnfsShared)
+            for (Server server : servers) {
+                for (List<VnfShared> vnfsShared : server.getVnfs().values()) {
+                    for (VnfShared vnfShared : vnfsShared) {
                         deployCost = deployCost + vnfShared.getDeploy() + server.getDeploy();
+                    }
+                }
+            }
 
             return deployCost;
         } catch (Exception e) {
@@ -158,8 +169,9 @@ public class ObjectiveFunctionService {
         int distance = 0;
         try {
             // suma de las distancias de los enlaces
-            for (Link link : links)
+            for (Link link : links) {
                 distance = distance + link.getDistance() * link.getTrafficAmount();
+            }
 
             return distance;
         } catch (Exception e) {
@@ -172,8 +184,9 @@ public class ObjectiveFunctionService {
         int hops = 0;
         try {
             // suma de los saltos
-            for (Link link : links)
+            for (Link link : links) {
                 hops = hops + link.getTrafficAmount();
+            }
 
             return hops;
         } catch (Exception e) {
@@ -188,10 +201,12 @@ public class ObjectiveFunctionService {
             for (Server server : servers) {
                 //Suma del costo de licencia de cada servidor
                 licencesCost = server.getLicenceCost();
-                for (List<VnfShared> vnfsShared : server.getVnfs().values())
-                    //Suma del costo de licencia de cada VNF
-                    for(VnfShared vnfShared : vnfsShared)
+                for (List<VnfShared> vnfsShared : server.getVnfs().values()) //Suma del costo de licencia de cada VNF
+                {
+                    for (VnfShared vnfShared : vnfsShared) {
                         licencesCost = licencesCost + vnfShared.getLicenceCost();
+                    }
+                }
             }
             return licencesCost;
         } catch (Exception e) {
@@ -201,24 +216,28 @@ public class ObjectiveFunctionService {
     }
 
     private double calculateSLOCost(Map<String, Link> linksMap, List<Traffic> traffics,
-                                   Map<String, VnfShared> vnfsShared) throws Exception {
+            Map<String, VnfShared> vnfsShared) throws Exception {
         double sloCost = 0;
         int delayTotal;
         try {
 
             //Costo por superar el maximo delay
-            for(Traffic traffic : traffics){
+            for (Traffic traffic : traffics) {
                 delayTotal = 0;
-                if(traffic.isProcessed()) {
-                    for (Path path : traffic.getResultPath().getPaths())
-                        for (String linkId : path.getShortestPath().getLinks())
+                if (traffic.isProcessed()) {
+                    for (Path path : traffic.getResultPath().getPaths()) {
+                        for (String linkId : path.getShortestPath().getLinks()) {
                             delayTotal = delayTotal + linksMap.get(linkId).getDelay();
+                        }
+                    }
 
-                    for (Vnf vnf : traffic.getSfc().getVnfs())
+                    for (Vnf vnf : traffic.getSfc().getVnfs()) {
                         delayTotal = delayTotal + vnfsShared.get(vnf.getId()).getDelay();
+                    }
 
-                    if (traffic.getDelayMaxSLA() < delayTotal)
+                    if (traffic.getDelayMaxSLA() < delayTotal) {
                         sloCost = sloCost + traffic.getPenaltyCostSLO();
+                    }
                 }
             }
 
@@ -234,21 +253,22 @@ public class ObjectiveFunctionService {
         try {
             //Costo de multa de cada recurso por el recurso que sobra de la capacidad total de cada Servidor
             for (Server server : servers) {
-                fragmentation = fragmentation +
-                        (server.getResourceCPU() - server.getResourceCPUUsed()) *
-                                Configurations.serverPenaltyCPUCost;
-                fragmentation = fragmentation +
-                        (server.getResourceRAM() - server.getResourceRAMUsed()) *
-                                Configurations.serverPenaltyRAMCost;
-                fragmentation = fragmentation +
-                        (server.getResourceStorage() - server.getResourceStorageUsed()) *
-                                Configurations.serverPenaltyStorageCost;
+                fragmentation = fragmentation
+                        + (server.getResourceCPU() - server.getResourceCPUUsed())
+                        * Configurations.serverPenaltyCPUCost;
+                fragmentation = fragmentation
+                        + (server.getResourceRAM() - server.getResourceRAMUsed())
+                        * Configurations.serverPenaltyRAMCost;
+                fragmentation = fragmentation
+                        + (server.getResourceStorage() - server.getResourceStorageUsed())
+                        * Configurations.serverPenaltyStorageCost;
             }
 
             //Costo de multa por el ancho banda que sobra de la capacidad total de cada enlace
-            for (Link link : links)
-                fragmentation = fragmentation +
-                        (link.getBandwidth() - link.getBandwidthUsed()) * Configurations.linkPenaltyBandwidthCost;
+            for (Link link : links) {
+                fragmentation = fragmentation
+                        + (link.getBandwidth() - link.getBandwidthUsed()) * Configurations.linkPenaltyBandwidthCost;
+            }
 
             return fragmentation;
         } catch (Exception e) {
@@ -263,10 +283,10 @@ public class ObjectiveFunctionService {
         try {
             //Suma de los recursos utilizados de cada servidor
             for (Server server : servers) {
-                    resourceCPUCost = resourceCPUCost + (server.getResourceCPUUsed() * server.getResourceCPUCost());
-                    resourceRAMCost = resourceRAMCost + (server.getResourceRAMUsed() * server.getResourceRAMCost());
-                    resourceStorageCost = resourceStorageCost + (server.getResourceStorageUsed() * server.getResourceStorageCost());
-                }
+                resourceCPUCost = resourceCPUCost + (server.getResourceCPUUsed() * server.getResourceCPUCost());
+                resourceRAMCost = resourceRAMCost + (server.getResourceRAMUsed() * server.getResourceRAMCost());
+                resourceStorageCost = resourceStorageCost + (server.getResourceStorageUsed() * server.getResourceStorageCost());
+            }
 
             resourceTotalCost = resourceCPUCost + resourceRAMCost + resourceStorageCost;
             return resourceTotalCost;
@@ -280,8 +300,9 @@ public class ObjectiveFunctionService {
         double bandwidth = 0;
         try {
             //Suma del ancho de banda de cada enlace de la ruta
-            for (Link link : links)
+            for (Link link : links) {
                 bandwidth = bandwidth + link.getBandwidthUsed();
+            }
 
             return bandwidth;
         } catch (Exception e) {
@@ -294,8 +315,9 @@ public class ObjectiveFunctionService {
         double maximunUseLink;
         List<Double> bandwidths = new ArrayList<>();
         try {
-            for (Link link : links)
+            for (Link link : links) {
                 bandwidths.add(link.getBandwidthUsed());
+            }
 
             List<Double> sortedList = bandwidths.stream()
                     .sorted(Comparator.reverseOrder()).collect(Collectors.toList());
@@ -315,20 +337,22 @@ public class ObjectiveFunctionService {
         double bandwidth;
         try {
             //formula del paper 197
-            for(Traffic traffic: traffics)
-                if(traffic.isProcessed()) {
+            for (Traffic traffic : traffics) {
+                if (traffic.isProcessed()) {
                     List<Vnf> sfc = traffic.getSfc().getVnfs();
                     bandwidth = traffic.getBandwidth();
                     for (int i = 0; i < sfc.size(); i++) {
-                        delay=0;
-                        for(String linkId: traffic.getResultPath().getPaths().get(i + 1).getShortestPath().getLinks())
+                        delay = 0;
+                        for (String linkId : traffic.getResultPath().getPaths().get(i + 1).getShortestPath().getLinks()) {
                             delay = delay + linksMap.get(linkId).getDelay();
+                        }
 
                         bandwidth = bandwidth * vnfsShared.get(sfc.get(i).getId()).getBandwidthFactor();
 
                         loadTraffic = loadTraffic + (bandwidth * delay);
                     }
                 }
+            }
 
             return loadTraffic;
         } catch (Exception e) {
@@ -341,8 +365,9 @@ public class ObjectiveFunctionService {
     private int calculateNumberIntances(List<Server> servers) throws Exception {
         int instances = 0;
         try {
-            for (Server server : servers)
+            for (Server server : servers) {
                 instances = instances + server.getVnfs().size();
+            }
 
             return instances;
         } catch (Exception e) {
@@ -359,8 +384,9 @@ public class ObjectiveFunctionService {
             //Suma del ancho de banda de cada enlace de la ruta
             for (Traffic traffic : traffics) {
                 total = total + traffic.getBandwidth();
-                if (traffic.isProcessed())
+                if (traffic.isProcessed()) {
                     successful = successful + traffic.getBandwidth();
+                }
             }
             return -((successful / total) * 100);
         } catch (Exception e) {
@@ -377,8 +403,9 @@ public class ObjectiveFunctionService {
 
             for (Traffic traffic : traffics) {
                 total = total + 1;
-                if (!traffic.isProcessed() && traffic.getRejectLink()>traffic.getRejectNode())
+                if (!traffic.isProcessed() && traffic.getRejectLink() > traffic.getRejectNode()) {
                     reject = reject + 1;
+                }
             }
             return (reject / total) * 100;
         } catch (Exception e) {
@@ -394,8 +421,9 @@ public class ObjectiveFunctionService {
         try {
             for (Traffic traffic : traffics) {
                 total = total + 1;
-                if (!traffic.isProcessed() && traffic.getRejectLink()<traffic.getRejectNode())
+                if (!traffic.isProcessed() && traffic.getRejectLink() < traffic.getRejectNode()) {
                     reject = reject + 1;
+                }
             }
             return (reject / total) * 100;
         } catch (Exception e) {
@@ -411,8 +439,9 @@ public class ObjectiveFunctionService {
         try {
             for (Traffic traffic : traffics) {
                 total = total + traffic.getSfc().getVnfs().size();
-                if (traffic.isProcessed())
+                if (traffic.isProcessed()) {
                     attend = attend + traffic.getSfc().getVnfs().size();
+                }
             }
             return -((attend / total) * 100);
         } catch (Exception e) {
@@ -421,16 +450,40 @@ public class ObjectiveFunctionService {
         }
     }
 
-
-
+    /**
+     * 
+     * @param solutions
+     * @throws Exception 
+     */
     public void writeSolutions(Solutions solutions) throws Exception {
-        FileOutputStream fileOutputStream = null;
-        ObjectOutputStream objectOutputStream = null;
-        try {
-            fileOutputStream = new FileOutputStream(new File(System.getProperty("app.home") + Configurations.solutionsFileName));
-            objectOutputStream = new ObjectOutputStream(fileOutputStream);
+        String format = ";%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;";
+        try(PrintWriter writer = new PrintWriter(new File(Utility.buildFilePath(Configurations.solutionsFileName)))){
+         
+            String header = String.format(format,
+                    "Energy Cost(Dolar)",
+                    "Bandwidth(MB)",
+                    "Delay Cost",
+                    "Load Traffic",
+                    "Deploy Cost",
+                    "Resources Cost(Dolar)",
+                    "Fragmentation(Dolar)",
+                    "All Links Cost(Dolar)",
+                    "Max Use Link(MB)",
+                    "Licences Cost(Dolar)",
+                    "Slo Cost(Dolar)",
+                    "Distance(KM)",
+                    "Hops",
+                    "Host Size",
+                    "Number Instances",
+                    "Throughput(%)",
+                    "Attend Vnfs(%)",
+                    "Reject-Link",
+                    "Reject-Node"
+            );
+            
+            writer.println(header);
 
-            String header = ";" +
+            /*String header = ";" +
             "Energy Cost(Dolar)" + ";" +
             "Bandwidth(MB)" + ";" +
             "Delay Cost" + ";" +
@@ -450,56 +503,74 @@ public class ObjectiveFunctionService {
             "Attend Vnfs(%)" + ";" +
             "Reject-Link" + ";" +
             "Reject-Node" + "\n";
-
-            objectOutputStream.writeObject(header);
+            objectOutputStream.writeObject(header);*/
 
             for (int i = 0; i < Configurations.numberSolutions; i++) {
-                String sb = ";" +
-                solutions.getEnergyCostList().get(i) + ";" +
-                solutions.getBandwidthList().get(i) + ";" +
-                solutions.getDelayCostList().get(i) + ";" +
-                solutions.getLoadTrafficList().get(i) + ";" +
-                solutions.getDeployCostList().get(i) + ";" +
-                solutions.getResourcesCostList().get(i) + ";" +
-                solutions.getFragmentationList().get(i) + ";" +
-                solutions.getAllLinksCostList().get(i) + ";" +
-                solutions.getMaxUseLinkList().get(i) + ";" +
-                solutions.getLicencesCostList().get(i) + ";" +
-                solutions.getSloCostList().get(i) + ";" +
-                solutions.getDistanceList().get(i) + ";" +
-                solutions.getHopsList().get(i) + ";" +
-                solutions.getHostSizeList().get(i) + ";" +
-                solutions.getNumberInstancesList().get(i) + ";" +
-                (solutions.getThroughputList().get(i)) + ";" +
-                solutions.getAttendVnfs().get(i) + ";" +
-                solutions.getRejectLink().get(i) + ";" +
-                solutions.getRejectNode().get(i) + "\n";
+                String result = String.format(format,
+                        solutions.getEnergyCostList().get(i),
+                        solutions.getBandwidthList().get(i),
+                        solutions.getDelayCostList().get(i),
+                        solutions.getLoadTrafficList().get(i),
+                        solutions.getDeployCostList().get(i),
+                        solutions.getResourcesCostList().get(i),
+                        solutions.getFragmentationList().get(i),
+                        solutions.getAllLinksCostList().get(i),
+                        solutions.getMaxUseLinkList().get(i),
+                        solutions.getLicencesCostList().get(i),
+                        solutions.getSloCostList().get(i),
+                        solutions.getDistanceList().get(i),
+                        solutions.getHopsList().get(i),
+                        solutions.getHostSizeList().get(i),
+                        solutions.getNumberInstancesList().get(i),
+                        solutions.getThroughputList().get(i),
+                        solutions.getAttendVnfs().get(i),
+                        solutions.getRejectLink().get(i),
+                        solutions.getRejectNode().get(i)
+                );
+                writer.println(result);
+                
+                //String sb = ";" +
+                //solutions.getEnergyCostList().get(i) + ";" +
+                //solutions.getBandwidthList().get(i) + ";" +
+                //solutions.getDelayCostList().get(i) + ";" +
+                //solutions.getLoadTrafficList().get(i) + ";" +
+                //solutions.getDeployCostList().get(i) + ";" +
+                //solutions.getResourcesCostList().get(i) + ";" +
+                //solutions.getFragmentationList().get(i) + ";" +
+                //solutions.getAllLinksCostList().get(i) + ";" +
+                //solutions.getMaxUseLinkList().get(i) + ";" +
+                //solutions.getLicencesCostList().get(i) + ";" +
+                //solutions.getSloCostList().get(i) + ";" +
+                //solutions.getDistanceList().get(i) + ";" +
+                //solutions.getHopsList().get(i) + ";" +
+                //solutions.getHostSizeList().get(i) + ";" +
+                //solutions.getNumberInstancesList().get(i) + ";" +
+                //(solutions.getThroughputList().get(i)) + ";" +
+                //solutions.getAttendVnfs().get(i) + ";" +
+                //solutions.getRejectLink().get(i) + ";" +
+                //solutions.getRejectNode().get(i) + "\n";
 
-                objectOutputStream.writeObject(sb);
+                //objectOutputStream.writeObject(sb);
             }
         } catch (Exception e) {
-            logger.error("Error al escribir en el archivo de traficos");
-            throw new Exception();
-        } finally {
-            if (objectOutputStream != null)
-                objectOutputStream.close();
-            if (fileOutputStream != null)
-                fileOutputStream.close();
-        }
+            logger.error("Error writting solutions into file");
+            throw e;
+        } 
     }
 
-
     public SolutionTraffic solutionTrafficFOs(Map<String, Node> nodesMap, Map<String, Link> linksMap,
-                                       List<Traffic> traffics, Map<String, VnfShared> vnfsShared) throws Exception {
+            List<Traffic> traffics, Map<String, VnfShared> vnfsShared) throws Exception {
         List<Server> servers = new ArrayList<>();
         SolutionTraffic solutionTraffic = new SolutionTraffic();
 
         List<Node> nodes = new ArrayList<>(nodesMap.values());
         List<Link> links = new ArrayList<>(linksMap.values());
 
-        for(Node node : nodes)
-            if(node.getServer()!=null && node.getServer().getVnfs().size() > 0)
+        for (Node node : nodes) {
+            if (node.getServer() != null && node.getServer().getVnfs().size() > 0) {
                 servers.add(node.getServer());
+            }
+        }
 
         solutionTraffic.setEnergyCost(calculateEnergyCost(nodes));
         solutionTraffic.setSloCost(calculateSLOCost(linksMap, traffics, vnfsShared));
@@ -507,7 +578,7 @@ public class ObjectiveFunctionService {
         solutionTraffic.setDistance(calculateDistance(links));
         solutionTraffic.setBandwidth(calculateBandwidth(links));
         solutionTraffic.setNumberInstances(calculateNumberIntances(servers));
-        solutionTraffic.setLoadTraffic(calculateLoadTraffic(linksMap,traffics,vnfsShared));
+        solutionTraffic.setLoadTraffic(calculateLoadTraffic(linksMap, traffics, vnfsShared));
         solutionTraffic.setResourcesCost(calculateResources(servers));
         solutionTraffic.setLicencesCost(calculateLicencesCost(servers));
         solutionTraffic.setFragmentation(calculateResourceFragmentation(servers, links));
@@ -524,9 +595,11 @@ public class ObjectiveFunctionService {
         List<Node> nodes = new ArrayList<>(nodesMap.values());
         List<Link> links = new ArrayList<>(linksMap.values());
 
-        for(Node node : nodes)
-            if(node.getServer()!=null && node.getServer().getVnfs().size() > 0)
+        for (Node node : nodes) {
+            if (node.getServer() != null && node.getServer().getVnfs().size() > 0) {
                 servers.add(node.getServer());
+            }
+        }
 
         cost.setEnergy(calculateEnergyCost(nodes));
         cost.setDelay(calculateDelayTotal(servers, links));
@@ -540,6 +613,5 @@ public class ObjectiveFunctionService {
 
         return cost;
     }
-
 
 }

@@ -57,8 +57,8 @@ public class Traffic implements Serializable {
     private int rejectNode;
 
     /**
-     * Constructor
-     * @param traffic 
+     * Copy Constructor
+     * @param traffic The traffic to be copied
      */
     public Traffic(Traffic traffic) {
         this.nodeOriginId = traffic.getNodeOriginId();
@@ -76,9 +76,7 @@ public class Traffic implements Serializable {
     /**
      *  Default constructor
      */
-    public Traffic() {
-    }
-
+    public Traffic() { }
     
     @Override
     public String toString() {

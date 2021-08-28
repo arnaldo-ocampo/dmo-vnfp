@@ -17,8 +17,7 @@ import py.edu.fiuni.dmop.util.Configurations;
 /**
  * Reads the network topology and then it plots it as Graph
  * 
- * @author Arnaldo Ocampo
- * @author Nestor Tapia
+ * @author Arnaldo Ocampo, Nestor Tapia
  */
 public class GraphPlottingTest {
 
