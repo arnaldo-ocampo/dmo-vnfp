@@ -15,13 +15,13 @@ public class Traffic implements Serializable {
     
     private static final long serialVersionUID = 1L;
 
-    //Nodo origen
-    private String nodeOriginId;
+    // Source node
+    private String sourceNodeId;
 
-    //Nodo Destino
-    private String nodeDestinyId;
+    // Destination node
+    private String destinationNodeId;
 
-    //Ancho de Banda Inicial
+    // Initial bandwitdh
     private int bandwidth;
 
     
@@ -61,8 +61,8 @@ public class Traffic implements Serializable {
      * @param traffic The traffic to be copied
      */
     public Traffic(Traffic traffic) {
-        this.nodeOriginId = traffic.getNodeOriginId();
-        this.nodeDestinyId = traffic.getNodeDestinyId();
+        this.sourceNodeId = traffic.getSourceNodeId();
+        this.destinationNodeId = traffic.getDestinationNodeId();
         this.bandwidth = traffic.getBandwidth();
         this.delayMaxSLA = traffic.getDelayMaxSLA();
         this.penaltyCostSLO = traffic.getPenaltyCostSLO();
@@ -81,8 +81,8 @@ public class Traffic implements Serializable {
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder("Traffic: ");
-        sb.append("nodeOriginId=").append(nodeOriginId);
-        sb.append(", nodeDestinyId=").append(nodeDestinyId);
+        sb.append("sourceNodeId=").append(sourceNodeId);
+        sb.append(", destinationNodeId=").append(destinationNodeId);
         sb.append(", bandwidth=").append(bandwidth);
         sb.append(", delayMaxSLA=").append(delayMaxSLA);
         sb.append(", penaltyCostSLO=").append(penaltyCostSLO);

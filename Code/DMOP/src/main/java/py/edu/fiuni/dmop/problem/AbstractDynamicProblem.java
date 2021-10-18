@@ -1,14 +1,10 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-package py.edu.fiuni.dmop.dynamic;
+package py.edu.fiuni.dmop.problem;
 
 
 import org.moeaframework.core.Problem;
 import org.moeaframework.core.Solution;
 
+// TODO: Confirm we can implement AbstractProblem instead of Problem
 public abstract class AbstractDynamicProblem implements Problem {
     protected final double severityOfChange;
     private final int frequencyOfChange;
@@ -21,6 +17,7 @@ public abstract class AbstractDynamicProblem implements Problem {
 
     @Override
     public void evaluate(Solution solution){
+        System.out.println("NO DEBERIA ESTAR LLAMANDOSE POR AHORA!!!!!!");
         if(++counter>frequencyOfChange) {
             counter = 0;
             changeEnvironment();

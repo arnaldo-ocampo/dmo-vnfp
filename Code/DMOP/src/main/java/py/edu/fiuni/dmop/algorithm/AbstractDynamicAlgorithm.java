@@ -1,9 +1,4 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-package py.edu.fiuni.dmop.dynamic;
+package py.edu.fiuni.dmop.algorithm;
 
 
 import org.moeaframework.algorithm.AbstractAlgorithm;
@@ -11,7 +6,7 @@ import org.moeaframework.core.Problem;
 
 /**
  *
- * @author Arnaldo
+ * @author Arnaldo Ocampo, Néstor Tapia
  */
 public abstract class AbstractDynamicAlgorithm extends AbstractAlgorithm{
 

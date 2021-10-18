@@ -16,10 +16,28 @@ public class TrafficGenerator {
             Configurations.loadProperties();
             DataService.loadData();            
             
+            
             // Generate random traffic and save them into traffic file
             TrafficService trafficService = new TrafficService();
-            List<Traffic> traffics= trafficService.generateRandomTraffic(DataService.nodesMap, DataService.vnfs);
+            
+            
+            List<Traffic> traffics= trafficService.generateRandomTraffic(Configurations.numberOfTraffics, DataService.nodesMap, DataService.vnfs);
             trafficService.writeTraffics(traffics);
+            
+            
+            /*
+            int[] windowsTrafficsNumber = { 10, 80, 24, 93, 55, 12, 33, 99, 64, 22 };
+            
+            //int[] windowsTrafficsNumber = { 10, 80, 24, 93, 55, 12, 33, 99, 64, 22 };            
+            //int[] windowsTrafficsNumber = { 10, 80, 24, 93, 55, 12, 33, 99, 64, 22 };
+            
+            List<List<Traffic>> allTraffics = trafficService.generateWindowsTraffics(windowsTrafficsNumber, DataService.nodesMap, DataService.vnfs);
+            trafficService.writeAllTraffics(allTraffics);
+            
+            
+            //List<List<Traffic>> readTraffics = trafficService.readAllTraffics(windowsTrafficsNumber.length);
+            */
+            
             
         } catch (Exception e) {
             logger.error("Error Generating Traffic", e);

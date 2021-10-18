@@ -1,23 +1,23 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package py.edu.fiuni.dmop.decision;
 
 /**
  *
- * @author Néstor
+ * @author Néstor Tapia, Arnaldo Ocampo
  */
 public class DecisionMakerException extends Exception{
     
+    /**
+     * Default constructor
+     */
     public DecisionMakerException(){
-        super("Error al intentar objetener una solucion no dominada");
+        super("Error al intentar obtener una solucion no dominada");
     }
     
+    /**
+     * Constructor
+     * @param msg A short message that summarize the exception
+     */
     public DecisionMakerException(String msg){
         super(msg);
     }
-    
-    
 }

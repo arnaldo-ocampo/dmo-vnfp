@@ -34,10 +34,10 @@ public class VnfServiceRandom {
             vnfSharedMap = DataService.vnfsShared;
 
             if (Configurations.trafficsReadFile)
-                traffics = TrafficService.readTraffics();
+                traffics = trafficService.readTraffics();
             else
                 if (Configurations.trafficsRandom)
-                    traffics = trafficService.generateRandomTraffic(DataService.nodesMap, DataService.vnfs);
+                    traffics = trafficService.generateRandomTraffic(Configurations.numberOfTraffics, DataService.nodesMap, DataService.vnfs);
                 else
                     traffics = trafficService.generateAllToAllTraffic(DataService.nodesMap, DataService.vnfs);
 
@@ -55,18 +55,18 @@ public class VnfServiceRandom {
                         traffic.setProcessed(false);
                         traffic.setResultPath(null);
                         logger.warn(count + "- No Grafo Multi-Estados: " +
-                                "origen: " + traffic.getNodeOriginId() + ", destino: " + traffic.getNodeDestinyId());
+                                "origen: " + traffic.getSourceNodeId() + ", destino: " + traffic.getDestinationNodeId());
                     } else {
                         resultPath = provisionTrafficRandom(traffic);
                         traffic.setResultPath(resultPath);
                         if (resultPath == null) {
                             traffic.setProcessed(false);
                             logger.warn(count + "- No Solucion: " +
-                                    "origen: " + traffic.getNodeOriginId() + ", destino: " + traffic.getNodeDestinyId());
+                                    "origen: " + traffic.getSourceNodeId() + ", destino: " + traffic.getDestinationNodeId());
                         } else {
                             traffic.setProcessed(true);
                             logger.info(count + "- Solucion: " +
-                                    "origen: " + traffic.getNodeOriginId() + ", destino: " + traffic.getNodeDestinyId());
+                                    "origen: " + traffic.getSourceNodeId() + ", destino: " + traffic.getDestinationNodeId());
                         }
                     }
                     count++;
@@ -91,18 +91,18 @@ public class VnfServiceRandom {
         Vnf vnf;
         try {
             //Se verifica si existe alguna ruta entre el origin y el destino del trafico
-            if (shortestPathMap.get(traffic.getNodeOriginId() + "-" + traffic.getNodeDestinyId()) == null)
+            if (shortestPathMap.get(traffic.getSourceNodeId() + "-" + traffic.getDestinationNodeId()) == null)
                 return null;
 
             //Se guarda en el grafo multi estados el origen y el destino del trafico
-            gMStage.addVertex(traffic.getNodeOriginId());
-            gMStage.addVertex(traffic.getNodeDestinyId());
+            gMStage.addVertex(traffic.getSourceNodeId());
+            gMStage.addVertex(traffic.getDestinationNodeId());
 
             //Se crea enlaces desde el origen a la primera etapa
             vnf = traffic.getSfc().getVnfs().get(0);
             for (Node node : nodesMap.values()) {
                 if (node.getServer() != null) {
-                    kShortestPath = shortestPathMap.get(traffic.getNodeOriginId() + "-" + node.getId());
+                    kShortestPath = shortestPathMap.get(traffic.getSourceNodeId() + "-" + node.getId());
 
                     //Se guardan los nodos con servidor
                     states.add(node);
@@ -110,7 +110,7 @@ public class VnfServiceRandom {
                         //Se cambia la referencia del nodo guardando en otro objeto
                         nMSDestinyId = changeId(node.getId(), 1);
                         if (kShortestPath != null && kShortestPath.size() > 0) {
-                            path = new KPath(kShortestPath, traffic.getNodeOriginId() + "-" + nMSDestinyId);
+                            path = new KPath(kShortestPath, traffic.getSourceNodeId() + "-" + nMSDestinyId);
 
                             //se guarda el nodo en el grafo multiestados con ID = numero de etapa y el id del nodo
                             gMStage.addVertex(nMSDestinyId);
@@ -118,17 +118,17 @@ public class VnfServiceRandom {
                             //Se crea el enlace del grafo multi estados
                             // que seria el camino (conjunto de IDs de los nodos y enlaces del grafo principal)
                             // entre el par de nodos del grafo multi estados
-                            gMStage.addEdge(traffic.getNodeOriginId(), nMSDestinyId, path);
+                            gMStage.addEdge(traffic.getSourceNodeId(), nMSDestinyId, path);
 
                             // Si el nodo origen es igual al nodo destino
-                        } else if (traffic.getNodeOriginId().equals(node.getId())) {
+                        } else if (traffic.getSourceNodeId().equals(node.getId())) {
                             kShortestPath = new ArrayList<>();
                             ShortestPath shortestPath = new ShortestPath();
                             shortestPath.getNodes().add(node.getId());
                             kShortestPath.add(shortestPath);
-                            path = new KPath(kShortestPath, traffic.getNodeOriginId() + "-" + nMSDestinyId);
+                            path = new KPath(kShortestPath, traffic.getSourceNodeId() + "-" + nMSDestinyId);
                             gMStage.addVertex(nMSDestinyId);
-                            gMStage.addEdge(traffic.getNodeOriginId(), nMSDestinyId, path);
+                            gMStage.addEdge(traffic.getSourceNodeId(), nMSDestinyId, path);
                         }
                     }
                 }
@@ -165,24 +165,24 @@ public class VnfServiceRandom {
             for (Node node : states) {
                 nMSOriginId = changeId(node.getId(), numberStages);
                 if (gMStage.containsVertex(nMSOriginId)) {
-                    kShortestPath = shortestPathMap.get(node.getId() + "-" + traffic.getNodeDestinyId());
+                    kShortestPath = shortestPathMap.get(node.getId() + "-" + traffic.getDestinationNodeId());
                     if (kShortestPath != null && kShortestPath.size() > 0) {
-                        path = new KPath(kShortestPath, nMSOriginId + "-" + traffic.getNodeDestinyId());
-                        gMStage.addEdge(nMSOriginId, traffic.getNodeDestinyId(), path);
-                    } else if (node.getId().equals(traffic.getNodeDestinyId())) {
+                        path = new KPath(kShortestPath, nMSOriginId + "-" + traffic.getDestinationNodeId());
+                        gMStage.addEdge(nMSOriginId, traffic.getDestinationNodeId(), path);
+                    } else if (node.getId().equals(traffic.getDestinationNodeId())) {
                         kShortestPath = new ArrayList<>();
                         ShortestPath shortestPath = new ShortestPath();
                         shortestPath.getNodes().add(node.getId());
                         kShortestPath.add(shortestPath);
-                        path = new KPath(kShortestPath, nMSOriginId + "-" + traffic.getNodeDestinyId());
-                        gMStage.addEdge(changeId(node.getId(), numberStages), traffic.getNodeDestinyId(), path);
+                        path = new KPath(kShortestPath, nMSOriginId + "-" + traffic.getDestinationNodeId());
+                        gMStage.addEdge(changeId(node.getId(), numberStages), traffic.getDestinationNodeId(), path);
                     }
                 }
             }
 
             DijkstraShortestPath<String, KPath> dijkstraShortestPath = new DijkstraShortestPath<>(gMStage);
             GraphPath<String, KPath> dijkstra = dijkstraShortestPath
-                    .getPath(traffic.getNodeOriginId(), traffic.getNodeDestinyId());
+                    .getPath(traffic.getSourceNodeId(), traffic.getDestinationNodeId());
 
             if (dijkstra == null)
                 gMStage = null;
@@ -210,7 +210,7 @@ public class VnfServiceRandom {
         Vnf vnf;
         try {
             while (!validPlacement && retries <= Configurations.retriesSolution) {
-                originNodeId = traffic.getNodeOriginId();
+                originNodeId = traffic.getSourceNodeId();
                 bandwidtCurrent = traffic.getBandwidth();
                 nodesMapAux = loadNodesMapAux(this.nodesMap);
                 linksMapAux = loadLinkMapAux(this.linksMap);
@@ -229,7 +229,7 @@ public class VnfServiceRandom {
                     randomNodeId = graphMultiStage.getEdgeTarget(kPath);
 
                     //la ruta es valida si se llega hasta el nodo destino
-                    if (traffic.getNodeDestinyId().equals(randomNodeId)) {
+                    if (traffic.getDestinationNodeId().equals(randomNodeId)) {
                         if (!isResourceAvailableLink(originNodeId, randomNodeId,
                                 bandwidtCurrent, linksMapAux, nodesMapAux, shortestPath, traffic)) {
                             break;

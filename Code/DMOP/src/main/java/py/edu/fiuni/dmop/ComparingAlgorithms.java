@@ -1,44 +1,45 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package py.edu.fiuni.dmop;
 
+import java.io.File;
 import java.io.IOException;
 import org.moeaframework.Analyzer;
 import org.moeaframework.Executor;
 import org.moeaframework.analysis.plot.Plot;
+import py.edu.fiuni.dmop.util.Utility;
 
 /**
- * Class used for MOEA Framework classes testing purposes: 
+ * 
+ * Class used for testing purposes of MOEA Framework classes: 
  *      Problem, Algorithm, Executor, Analyzer, Plot
- * @author Arnaldo Ocampo
- * @author Nestor Tapia
+ * @author Arnaldo Ocampo, Nestor Tapía
+ * 
+ * Not related to VNF Placement problem
  */
 public class ComparingAlgorithms {
 
     public static void main(String[] args) throws IOException {
         
         String problem = "UF1";
-        String[] algorithms = {"NSGAII", "GDE3", "eMOEA"};
+        String[] algorithms = {"NSGAII", "NSGAIII", "GDE3", "eMOEA"};
 
         //setup the experiment
         Executor executor = new Executor()
                 .withProblem(problem)
+                //.withCheckpointFrequency(1000)
+                //.withCheckpointFile(new File(Utility.buildFilePath( "example.state")))
                 .withMaxEvaluations(10000);
 
         Analyzer analyzer = new Analyzer()
                 .withSameProblemAs(executor)
                 .includeHypervolume()
                 .includeAdditiveEpsilonIndicator()
-                //.includeGenerationalDistance()
+                .includeGenerationalDistance()
                 .showStatisticalSignificance();
 
         //run each algorithm for 50 seeds
         for (String algorithm : algorithms) {
-            analyzer.addAll(algorithm,
-                    executor.withAlgorithm(algorithm).runSeeds(50));
+            analyzer.addAll(algorithm, executor.withAlgorithm(algorithm).runSeeds(50));
+            //analyzer.add(algorithm, executor.withAlgorithm(algorithm).run());
         }
 
         //print the results

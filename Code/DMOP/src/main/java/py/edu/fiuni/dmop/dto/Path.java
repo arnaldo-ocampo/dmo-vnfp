@@ -1,6 +1,5 @@
 package py.edu.fiuni.dmop.dto;
 
-
 import lombok.Data;
 
 import java.io.Serializable;

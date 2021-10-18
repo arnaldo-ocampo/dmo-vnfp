@@ -1,24 +1,22 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-package py.edu.fiuni.dmop.dynamic;
+package py.edu.fiuni.dmop;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Properties;
+import java.util.Scanner;
+
 import org.moeaframework.Executor;
 import org.moeaframework.core.NondominatedPopulation;
 import org.moeaframework.core.Solution;
 import org.moeaframework.core.spi.AlgorithmFactory;
 import org.moeaframework.util.Vector;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Properties;
-import java.util.Scanner;
 import org.apache.log4j.Logger;
-import py.edu.fiuni.dmop.VNFPlacement;
+
+import py.edu.fiuni.dmop.DynamicPlacement;
+import py.edu.fiuni.dmop.algorithm.StandardDynamicAlgorithms;
+import py.edu.fiuni.dmop.problem.DynamicKnapsack;
 import py.edu.fiuni.dmop.util.Configurations;
 import py.edu.fiuni.dmop.util.Utility;
 
@@ -57,9 +55,14 @@ public class DynamicKnapsackExample {
             properties.put("severityOfChange", 1d);
             
             AlgorithmFactory.getInstance().addProvider(new StandardDynamicAlgorithms());
+            
             // solve using NSGA-II
-            NondominatedPopulation result = new Executor().withProblemClass(DynamicKnapsack.class, properties).withAlgorithm("DNSGAIIA")
-                    .withMaxEvaluations(500000).distributeOnAllCores().run();
+            NondominatedPopulation result = new Executor()
+                    .withProblemClass(DynamicKnapsack.class, properties)
+                    .withAlgorithm("DNSGAIIA")
+                    .withMaxEvaluations(500000)
+                    .distributeOnAllCores()
+                    .run();
             // solve using AMOSA
 //		OperatorFactory.getInstance().addProvider(new HLPProvider());
 //		TemperatureTerminationCondition temperatureTerminationCondition = new TemperatureTerminationCondition();

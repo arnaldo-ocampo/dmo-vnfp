@@ -1,19 +1,16 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-package py.edu.fiuni.dmop.dynamic;
+package py.edu.fiuni.dmop.problem;
+
+import java.io.*;
+import java.util.Properties;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.moeaframework.core.Solution;
 import org.moeaframework.core.variable.EncodingUtils;
 import org.moeaframework.util.Vector;
 import org.moeaframework.util.io.CommentedLineReader;
 
-import java.io.*;
-import java.util.Properties;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import py.edu.fiuni.dmop.problem.AbstractDynamicProblem;
 
 public class DynamicKnapsack extends AbstractDynamicProblem {
 
@@ -70,10 +67,7 @@ public class DynamicKnapsack extends AbstractDynamicProblem {
             }
         }
     }
-
-
-
-
+    
     /**
      * Loads the knapsack problem instance from the specified reader.
      *

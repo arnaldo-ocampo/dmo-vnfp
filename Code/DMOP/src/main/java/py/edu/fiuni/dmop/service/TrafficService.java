@@ -19,16 +19,18 @@ public class TrafficService {
 
     private static Logger logger = Logger.getLogger(TrafficService.class);
 
-    public static List<Traffic> traffics = new ArrayList<>();
-
     /**
      *
+     * @param numOfTraffics
      * @param nodesMap
      * @param vnfs
      * @return
      * @throws Exception
      */
-    public List<Traffic> generateRandomTraffic(Map<String, Node> nodesMap, List<Vnf> vnfs) throws Exception {
+    public List<Traffic> generateRandomTraffic(int numOfTraffics, Map<String, Node> nodesMap, List<Vnf> vnfs) throws Exception {
+
+        List<Traffic> traffics = new ArrayList<>();
+
         Random rn = new Random();
         int sfcSize;
         int nodesSize = nodesMap.size();
@@ -41,18 +43,18 @@ public class TrafficService {
                 nodesIdArray[i++] = node.getId();
             }
 
-            for (int n = 1; n <= Configurations.numberTraffic; n++) {
+            for (int n = 1; n <= numOfTraffics; n++) {
                 Traffic traffic = new Traffic();
                 traffic.setBandwidth(rn.nextInt(Configurations.trafficBandwidthMax - Configurations.trafficBandwidthMin + 1) + Configurations.trafficBandwidthMin);
                 traffic.setPenaltyCostSLO(rn.nextInt(Configurations.trafficPenaltySloMax - Configurations.trafficPenaltySloMin + 1) + Configurations.trafficPenaltySloMin);
                 traffic.setProcessed(false);
 
-                traffic.setNodeOriginId(nodesIdArray[rn.nextInt(nodesSize)]);
+                traffic.setSourceNodeId(nodesIdArray[rn.nextInt(nodesSize)]);
 
                 // make sure we are assigning different nodes as origin and destination
                 do {
-                    traffic.setNodeDestinyId(nodesIdArray[rn.nextInt(nodesSize)]);
-                } while (traffic.getNodeOriginId().equals(traffic.getNodeDestinyId()));
+                    traffic.setDestinationNodeId(nodesIdArray[rn.nextInt(nodesSize)]);
+                } while (traffic.getSourceNodeId().equals(traffic.getDestinationNodeId()));
 
                 // Ramdonly assign how many vnf needs this traffic
                 sfcSize = rn.nextInt(Configurations.trafficSfcMax - Configurations.trafficSfcMin + 1)
@@ -64,7 +66,7 @@ public class TrafficService {
                     sfc.getVnfs().add(vnf);
                 }
                 traffic.setSfc(sfc);
-                traffic.setDelayMaxSLA(getDelayMax(sfc, traffic.getNodeOriginId(), traffic.getNodeDestinyId()));
+                traffic.setDelayMaxSLA(getDelayMax(sfc, traffic.getSourceNodeId(), traffic.getDestinationNodeId()));
 
                 traffics.add(traffic);
 
@@ -86,15 +88,18 @@ public class TrafficService {
      * @throws Exception
      */
     public List<Traffic> generateAllToAllTraffic(Map<String, Node> nodesMap, List<Vnf> vnfs) throws Exception {
+
+        List<Traffic> traffics = new ArrayList<>();
+
         Random rn = new Random();
         int sfcSize;
         try {
-            for (Node nodeOrigin : nodesMap.values()) {
-                for (Node nodeDestiny : nodesMap.values()) {
-                    if (!nodeDestiny.getId().equalsIgnoreCase(nodeOrigin.getId())) {
+            for (Node sourceNode : nodesMap.values()) {
+                for (Node destinationNode : nodesMap.values()) {
+                    if (!destinationNode.getId().equalsIgnoreCase(sourceNode.getId())) {
                         Traffic traffic = new Traffic();
-                        traffic.setNodeOriginId(nodeOrigin.getId());
-                        traffic.setNodeDestinyId(nodeDestiny.getId());
+                        traffic.setSourceNodeId(sourceNode.getId());
+                        traffic.setDestinationNodeId(destinationNode.getId());
                         traffic.setBandwidth(rn.nextInt(Configurations.trafficBandwidthMax - Configurations.trafficBandwidthMin + 1) + Configurations.trafficBandwidthMin);
                         traffic.setPenaltyCostSLO(rn.nextInt(Configurations.trafficPenaltySloMax - Configurations.trafficPenaltySloMin + 1) + Configurations.trafficPenaltySloMin);
                         traffic.setProcessed(false);
@@ -107,7 +112,7 @@ public class TrafficService {
                             sfc.getVnfs().add(vnf);
                         }
                         traffic.setSfc(sfc);
-                        traffic.setDelayMaxSLA(getDelayMax(sfc, traffic.getNodeOriginId(), traffic.getNodeDestinyId()));
+                        traffic.setDelayMaxSLA(getDelayMax(sfc, traffic.getSourceNodeId(), traffic.getDestinationNodeId()));
 
                         traffics.add(traffic);
                     }
@@ -121,20 +126,44 @@ public class TrafficService {
         }
     }
 
+    public List<List<Traffic>> generateWindowsTraffics(int[] windowsTrafficsNumber, Map<String, Node> nodesMap, List<Vnf> vnfs) throws Exception {
+
+        List<List<Traffic>> traffics = new ArrayList<List<Traffic>>();
+
+        for (int i = 0; i < windowsTrafficsNumber.length; i++) {
+            int number = windowsTrafficsNumber[i];
+            traffics.add(generateRandomTraffic(number, nodesMap, vnfs));
+        }
+
+        return traffics;
+    }
+
     /**
      *
      * @param traffics
      * @throws Exception
      */
     public void writeTraffics(List<Traffic> traffics) throws Exception {
+        writeTraffics(traffics, Configurations.trafficsFileName);
+    }
+
+    public void writeTraffics(List<Traffic> traffics, String trafficFileName) throws Exception {
         Gson gson = new Gson();
-        try (PrintWriter writer = new PrintWriter(new File(Utility.buildFilePath(Configurations.trafficsFileName)))) {
+        try (PrintWriter writer = new PrintWriter(new File(Utility.buildFilePath(Configurations.trafficsFolder + "/" + trafficFileName)))) {
             for (Traffic traffic : traffics) {
                 writer.println(gson.toJson(traffic));
             }
         } catch (Exception e) {
-            logger.error("Error writting traffics to file", e);
+            logger.error("Error writting traffics to file " + trafficFileName, e);
             throw e;
+        }
+    }
+
+    public void writeAllTraffics(List<List<Traffic>> allTraffics) throws Exception {
+        String filenamePreffix = "Traffic_";
+        int windows = 0;
+        for (List<Traffic> theTraffics : allTraffics) {
+            writeTraffics(theTraffics, String.format("%s%d.txt", filenamePreffix, windows++));
         }
     }
 
@@ -142,30 +171,55 @@ public class TrafficService {
      *
      * @return @throws Exception
      */
-    public static List<Traffic> readTraffics() throws Exception {
+    public List<Traffic> readTraffics() {
+        return readTraffics(Configurations.trafficsFileName);
+    }
+
+    public List<Traffic> readTraffics(String trafficFileName) {
+
+        List<Traffic> traffics = new ArrayList<>();
+
         Gson gson = new Gson();
-        try (Scanner reader = new Scanner(new File(Utility.buildFilePath(Configurations.trafficsFileName)))) {
-            logger.info("Reading traffic from file: ");
-            for (int i = 1; i <= Configurations.numberTraffic; i++) {
+        try (Scanner reader = new Scanner(new File(Utility.buildFilePath(Configurations.trafficsFolder + "/" + trafficFileName)))) {
+            logger.info("Reading traffic from file: " + trafficFileName);
+            int i = 0;
+            //String strTraffic = null;
+            while (reader.hasNext()) {
                 String strTraffic = reader.nextLine();
-                traffics.add(gson.fromJson(strTraffic, Traffic.class));
-                logger.info(i + " " + strTraffic);
+                if (!strTraffic.isBlank()) {
+                    traffics.add(gson.fromJson(strTraffic, Traffic.class));
+                    logger.info(i++ + " " + strTraffic);
+                }
             }
             return traffics;
         } catch (Exception e) {
             logger.error("Error al leer del archivo de traficos", e);
-            throw e;
+            return null;
         }
     }
 
+    public List<List<Traffic>> readAllTraffics(int numberOfWindows) {
+
+        List<List<Traffic>> traffics = new ArrayList<>();
+
+        String filenamePreffix = "Traffic_";
+        int windows = 0;
+        while (windows < numberOfWindows) {
+            traffics.add(readTraffics(String.format("%s%d.txt", filenamePreffix, windows)));
+            windows++;
+        }
+
+        return traffics;
+    }
+
     /**
-     * 
+     *
      * @param sfc
-     * @param originId
-     * @param destinyId
-     * @return 
+     * @param sourceId
+     * @param destinationId
+     * @return
      */
-    private double getDelayMax(SFC sfc, String originId, String destinyId) {
+    private double getDelayMax(SFC sfc, String sourceId, String destinationId) {
 
         List<GraphPath<Node, Link>> paths;
         double delayMin = 0;
@@ -174,7 +228,7 @@ public class TrafficService {
                 = new KShortestPaths<>(DataService.graph, 3, Integer.MAX_VALUE);
 
         // 
-        paths = pathInspector.getPaths(DataService.nodesMap.get(originId), DataService.nodesMap.get(destinyId));
+        paths = pathInspector.getPaths(DataService.nodesMap.get(sourceId), DataService.nodesMap.get(destinationId));
 
         for (Vnf vnf : sfc.getVnfs()) {
             delayMin = delayMin + DataService.vnfsShared.get(vnf.getId()).getDelay();

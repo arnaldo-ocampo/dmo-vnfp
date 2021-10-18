@@ -9,9 +9,9 @@ import java.util.List;
 public class ResultPath implements Serializable {
     private static final long serialVersionUID = -7784888753852315823L;
 
-    //Paths de la solucion
+    // Solution Paths
     private List<Path> paths;
 
-    //Servidores donde se instalaron los VNFs
+    // Servidores donde se instalaron los VNFs
     List<String> serverVnf;
 }

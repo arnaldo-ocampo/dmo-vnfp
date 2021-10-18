@@ -22,9 +22,13 @@ public class Configurations {
     public static String trafficsFileName;
     public static String solutionsFileName;
     public static Integer numberSolutions;
-    public static Integer numberTraffic;
+    public static Integer numberOfTraffics;
     public static Integer k;
     public static Integer retriesSolution;
+    
+    
+    public static String trafficsFolder;
+    
 
     public static double serverPenaltyCPUCost;
     public static double serverPenaltyRAMCost;
@@ -47,6 +51,9 @@ public class Configurations {
     public static String pythonScript;
     public static String pythonLogPath;
     
+    
+    public static int frequencyOfChange;
+    public static double severityOfChange;
     
      
 
@@ -72,7 +79,7 @@ public class Configurations {
             trafficsFileName = prop.getProperty("file.name.traffics");
             solutionsFileName = prop.getProperty("file.name.solution");
             numberSolutions = Integer.valueOf(prop.getProperty("number.solution"));
-            numberTraffic = Integer.valueOf(prop.getProperty("number.traffic"));
+            numberOfTraffics = Integer.valueOf(prop.getProperty("number.traffic"));
             k = Integer.valueOf(prop.getProperty("k.shortest"));
             retriesSolution = Integer.valueOf(prop.getProperty("retries.solution"));
 
@@ -91,11 +98,17 @@ public class Configurations {
             trafficPenaltySloMax = Integer.parseInt(prop.getProperty("traffic.penalty.slo.max"));
             trafficSfcMin = Integer.parseInt(prop.getProperty("traffic.sfc.min"));
             trafficSfcMax = Integer.parseInt(prop.getProperty("traffic.sfc.max"));
-
+                        
+            trafficsFolder = prop.getProperty("traffics.folder");
+            
             pythonInterpreter = prop.getProperty("python.interpreter.path");
             pythonScript = prop.getProperty("python.script.filepath");
             pythonLogPath = prop.getProperty("python.script.logfile");
-
+            
+            
+            frequencyOfChange = Integer.parseInt(prop.getProperty("change.frequency"));
+            severityOfChange = Double.parseDouble(prop.getProperty("change.severity"));
+            
         } catch (IOException ex) {
             logger.error("Error on loading properties data:", ex);
             throw ex;

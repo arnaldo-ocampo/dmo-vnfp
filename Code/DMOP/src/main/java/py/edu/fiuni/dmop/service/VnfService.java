@@ -33,7 +33,7 @@ public class VnfService {
      * @param permutation
      * @return
      */
-    public SolutionTraffic placement(List<Traffic> traffics, Permutation permutation) {
+    public TrafficSolutionMap placement(List<Traffic> traffics, Permutation permutation) {
         try {
             ObjectiveFunctionService ofs = new ObjectiveFunctionService();
 
@@ -46,10 +46,10 @@ public class VnfService {
 
             //
             solution(traffics, permutation);
+        
+            TrafficSolutionMap solution = ofs.solutionTrafficFOs(nodesMap, linksMap, traffics, DataService.vnfsShared);
 
-            SolutionTraffic solutionTraffic = ofs.solutionTrafficFOs(nodesMap, linksMap, traffics, DataService.vnfsShared);
-
-            return solutionTraffic;
+            return solution;
 
         } catch (Exception e) {
             logger.error("Error on VNF placement: ", e);
@@ -113,10 +113,10 @@ public class VnfService {
 
                     /*if (resultPath == null) {
                         traffic.setProcessed(false);
-                        //      logger.warn(count + "- No Solucion: " + "origen: " + traffic.getNodeOriginId() + ", destino: " + traffic.getNodeDestinyId());
+                        //logger.warn(count + "- No Solucion: " + "origen: " + traffic.getNodeOriginId() + ", destino: " + traffic.getNodeDestinyId());
                     } else {
                         traffic.setProcessed(true);
-                        //    logger.info(count + "- Solucion: " + "origen: " + traffic.getNodeOriginId() + ", destino: " + traffic.getNodeDestinyId());
+                        //logger.info(count + "- Solucion: " + "origen: " + traffic.getNodeOriginId() + ", destino: " + traffic.getNodeDestinyId());
                     }*/
                 }
                 count++;
@@ -142,19 +142,19 @@ public class VnfService {
         Vnf vnf;
         try {
             //Se verifica si existe alguna ruta entre el origin y el destino del trafico
-            if (shortestPathMap.get(traffic.getNodeOriginId() + "-" + traffic.getNodeDestinyId()) == null) {
+            if (shortestPathMap.get(String.format("%s-%s", traffic.getSourceNodeId(), traffic.getDestinationNodeId())) == null) {
                 return null;
             }
 
             //Se guarda en el grafo multi estados el origen y el destino del trafico
-            gMStage.addVertex(traffic.getNodeOriginId());
-            gMStage.addVertex(traffic.getNodeDestinyId());
+            gMStage.addVertex(traffic.getSourceNodeId());
+            gMStage.addVertex(traffic.getDestinationNodeId());
 
             //Se crea enlaces desde el origen a la primera etapa
             vnf = traffic.getSfc().getVnfs().get(0);
             for (Node node : nodesMap.values()) {
                 if (node.getServer() != null) {
-                    kShortestPath = shortestPathMap.get(traffic.getNodeOriginId() + "-" + node.getId());
+                    kShortestPath = shortestPathMap.get(traffic.getSourceNodeId() + "-" + node.getId());
 
                     //Se guardan los nodos con servidor
                     states.add(node);
@@ -164,7 +164,7 @@ public class VnfService {
 
                         // TODO: REFACTOR CODIGO PARA SIMPLIFICAR IF ELSE
                         if (kShortestPath != null && !kShortestPath.isEmpty()) {
-                            path = new KPath(kShortestPath, traffic.getNodeOriginId() + "-" + nMSDestinyId);
+                            path = new KPath(kShortestPath, traffic.getSourceNodeId() + "-" + nMSDestinyId);
 
                             //se guarda el nodo en el grafo multiestados con ID = numero de etapa y el id del nodo
                             gMStage.addVertex(nMSDestinyId);
@@ -172,17 +172,17 @@ public class VnfService {
                             //Se crea el enlace del grafo multi estados
                             // que seria el camino (conjunto de IDs de los nodos y enlaces del grafo principal)
                             // entre el par de nodos del grafo multi estados
-                            gMStage.addEdge(traffic.getNodeOriginId(), nMSDestinyId, path);
+                            gMStage.addEdge(traffic.getSourceNodeId(), nMSDestinyId, path);
 
                             // Si el nodo origen es igual al nodo destino
-                        } else if (traffic.getNodeOriginId().equals(node.getId())) {
+                        } else if (traffic.getSourceNodeId().equals(node.getId())) {
                             kShortestPath = new ArrayList<>();
                             ShortestPath shortestPath = new ShortestPath();
                             shortestPath.getNodes().add(node.getId());
                             kShortestPath.add(shortestPath);
-                            path = new KPath(kShortestPath, traffic.getNodeOriginId() + "-" + nMSDestinyId);
+                            path = new KPath(kShortestPath, traffic.getSourceNodeId() + "-" + nMSDestinyId);
                             gMStage.addVertex(nMSDestinyId);
-                            gMStage.addEdge(traffic.getNodeOriginId(), nMSDestinyId, path);
+                            gMStage.addEdge(traffic.getSourceNodeId(), nMSDestinyId, path);
                         }
                     }
                 }
@@ -219,24 +219,24 @@ public class VnfService {
             for (Node node : states) {
                 nMSOriginId = changeId(node.getId(), numberStages);
                 if (gMStage.containsVertex(nMSOriginId)) {
-                    kShortestPath = shortestPathMap.get(node.getId() + "-" + traffic.getNodeDestinyId());
+                    kShortestPath = shortestPathMap.get(node.getId() + "-" + traffic.getDestinationNodeId());
                     if (kShortestPath != null && kShortestPath.size() > 0) {
-                        path = new KPath(kShortestPath, nMSOriginId + "-" + traffic.getNodeDestinyId());
-                        gMStage.addEdge(nMSOriginId, traffic.getNodeDestinyId(), path);
-                    } else if (node.getId().equals(traffic.getNodeDestinyId())) {
+                        path = new KPath(kShortestPath, nMSOriginId + "-" + traffic.getDestinationNodeId());
+                        gMStage.addEdge(nMSOriginId, traffic.getDestinationNodeId(), path);
+                    } else if (node.getId().equals(traffic.getDestinationNodeId())) {
                         kShortestPath = new ArrayList<>();
                         ShortestPath shortestPath = new ShortestPath();
                         shortestPath.getNodes().add(node.getId());
                         kShortestPath.add(shortestPath);
-                        path = new KPath(kShortestPath, nMSOriginId + "-" + traffic.getNodeDestinyId());
-                        gMStage.addEdge(changeId(node.getId(), numberStages), traffic.getNodeDestinyId(), path);
+                        path = new KPath(kShortestPath, nMSOriginId + "-" + traffic.getDestinationNodeId());
+                        gMStage.addEdge(changeId(node.getId(), numberStages), traffic.getDestinationNodeId(), path);
                     }
                 }
             }
 
             DijkstraShortestPath<String, KPath> dijkstraShortestPath = new DijkstraShortestPath<>(gMStage);
             GraphPath<String, KPath> dijkstra = dijkstraShortestPath
-                    .getPath(traffic.getNodeOriginId(), traffic.getNodeDestinyId());
+                    .getPath(traffic.getSourceNodeId(), traffic.getDestinationNodeId());
 
             if (dijkstra == null) {
                 gMStage = null;
@@ -259,7 +259,7 @@ public class VnfService {
             Map<String, Node> nodesMapAux = copyNodesMap(nodesMap);
             Map<String, Link> linksMapAux = copyLinksMap(linksMap);
             
-            String originNodeId = traffic.getNodeOriginId();
+            String originNodeId = traffic.getSourceNodeId();
             double currentBandwidth = traffic.getBandwidth();
 
             boolean validPlacement = recursion(originNodeId, traffic, currentBandwidth, 0, pathNodeIds, serverVnf, nodesMapAux, linksMapAux);
@@ -293,7 +293,7 @@ public class VnfService {
                 Set<KPath> links = graphMultiStage.outgoingEdgesOf(originNodeId);
                 destinyNodeId = graphMultiStage.getEdgeTarget(links.iterator().next());
 
-                if (traffic.getNodeDestinyId().equals(destinyNodeId)) {
+                if (traffic.getDestinationNodeId().equals(destinyNodeId)) {
                     for (ShortestPath shortestPathLast : links.iterator().next().getKShortestPath()) {
                         if (isResourceAvailableLink(originNodeId, destinyNodeId,
                                 bandwidtCurrent, linksMapAux, nodesMapAux, shortestPathLast, traffic)) {
@@ -475,23 +475,7 @@ public class VnfService {
      * given list
      */
     private List<Traffic> copyTraffics(List<Traffic> traffics) {
-
         return traffics.stream().map(m -> new Traffic(m)).collect(Collectors.toList());
-        /*
-        List<Traffic> trafficsAux = new ArrayList<>();
-
-        // TODO: MOVER DECLARACION DE VARIABLE DESPUES DE VERIFICAR EFECTO
-        Traffic trafficAux;
-        try {
-            for (Traffic traffic : traffics) {
-                trafficAux = new Traffic(traffic);
-                trafficsAux.add(trafficAux);
-            }
-            return trafficsAux;
-        } catch (Exception e) {
-            logger.error("Error en loadTraffics: " + e.getMessage());
-            throw new Exception();
-        }*/
     }
 
     private void updateGraphMap(Map<String, Node> nodes, Map<String, Link> links) {
@@ -577,7 +561,7 @@ public class VnfService {
                         link.setTrafficAmount(link.getTrafficAmount() + 1);
                     }
                 }
-                if (shortestPath.getLinks().size() != 0) {
+                if (!shortestPath.getLinks().isEmpty()) {
                     for (int i = 0; i < shortestPath.getNodes().size() - 1; i++) {
                         node = nodesMapAux.get(shortestPath.getNodes().get(i));
                         node.setTrafficAmount(node.getTrafficAmount() + 1);
@@ -626,19 +610,19 @@ public class VnfService {
             double minBandwidth = costs.stream().mapToDouble(Cost::getBandwidth)
                     .min().orElseThrow(NoSuchElementException::new);
 
-            int maxDelay = costs.stream().mapToInt(Cost::getDelay)
+            double maxDelay = costs.stream().mapToDouble(Cost::getDelay)
                     .max().orElseThrow(NoSuchElementException::new);
-            int minDelay = costs.stream().mapToInt(Cost::getDelay)
+            double minDelay = costs.stream().mapToDouble(Cost::getDelay)
                     .min().orElseThrow(NoSuchElementException::new);
 
-            int maxDistance = costs.stream().mapToInt(Cost::getDistance)
+            double maxDistance = costs.stream().mapToDouble(Cost::getDistance)
                     .max().orElseThrow(NoSuchElementException::new);
-            int minDistance = costs.stream().mapToInt(Cost::getDistance)
+            double minDistance = costs.stream().mapToDouble(Cost::getDistance)
                     .min().orElseThrow(NoSuchElementException::new);
 
-            int maxInstances = costs.stream().mapToInt(Cost::getNumberInstances)
+            double maxInstances = costs.stream().mapToDouble(Cost::getNumberInstances)
                     .max().orElseThrow(NoSuchElementException::new);
-            int minInstances = costs.stream().mapToInt(Cost::getNumberInstances)
+            double minInstances = costs.stream().mapToDouble(Cost::getNumberInstances)
                     .min().orElseThrow(NoSuchElementException::new);
 
             double maxResources = costs.stream().mapToDouble(Cost::getResources)
@@ -661,7 +645,7 @@ public class VnfService {
             double minMaximunUseLink = costs.stream().mapToDouble(Cost::getMaximunUseLink)
                     .min().orElseThrow(NoSuchElementException::new);
 
-            for (Cost cost : costs) {
+            costs.forEach(cost -> {
                 double normalizedEnergy = Utility.normalizeValue(cost.getEnergy(), maxEnergy, minEnergy);
                 double normalizedBandwidth = Utility.normalizeValue(cost.getBandwidth(), maxBandwidth, minBandwidth);
                 double normalizedDelay = Utility.normalizeValue(cost.getDelay(), maxDelay, minDelay);
@@ -677,61 +661,9 @@ public class VnfService {
                         + normalizedFragmentation + normalizedMaximunUseLink;
 
                 cost.setCostNormalized(costNormalized / 9);
-            }
+            });
         }
 
         return costs;
-    }
-
-    private void plotMultiStageGraph(DirectedGraph<String, KPath> graphMultiStage) {
-
-        Set<String> nodes = new HashSet();
-        Set<String> links = new HashSet();
-
-        System.setProperty("org.graphstream.ui", "swing");
-        Graph graph = new SingleGraph("MutiStage Graph");
-        graph.setAttribute("ui.stylesheet", "node {shape: box; size: 45px, 20px; fill-mode: plain; fill-color: lightgrey; stroke-mode: plain; stroke-color: #333;}");
-
-        // Adds every node to the graph
-        graphMultiStage.vertexSet().forEach(n -> {
-            //graph.addNode(n);
-            nodes.add(n);
-        });
-
-        graphMultiStage.edgeSet().forEach(kpath -> {
-            kpath.getKShortestPath().forEach(ksp -> {
-                ksp.getNodes().forEach(n -> {
-                    //graph.addNode(n);
-                    nodes.add(n);
-                });
-                ksp.getLinks().forEach(link -> {
-                    String linkId = link;
-                    String nodesId = linkId.substring(0, linkId.indexOf("/"));
-                    //String[] ids = nodesId.split("-");
-
-                    links.add(nodesId);
-
-                    //graph.addEdge(nodesId, ids[0], ids[1]);
-                });
-            });
-        });
-
-        // Addd every node to the graph
-        nodes.forEach(nodeId -> {
-            graph.addNode(nodeId);
-        });
-
-        // Adds every edge (link) between neighbour nodes to the graph
-        links.forEach(link -> {
-            String[] ids = link.split("-");
-            graph.addEdge(link, ids[0], ids[1]);
-        });
-
-        // Configure the graph to show a label next to every node
-        for (org.graphstream.graph.Node node : graph) {
-            node.setAttribute("ui.label", node.getId());
-        }
-
-        graph.display();
     }
 }

@@ -16,6 +16,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import py.edu.fiuni.dmop.util.ObjectiveFunctionEnum;
 import py.edu.fiuni.dmop.util.Utility;
 
 public class ObjectiveFunctionService {
@@ -122,7 +123,7 @@ public class ObjectiveFunctionService {
         }
     }
 
-    private int calculateDelayTotal(List<Server> servers, List<Link> links) throws Exception {
+    private double calculateDelayTotal(List<Server> servers, List<Link> links) throws Exception {
         int latency = 0;
         try {
             //Suma del delay de procesamiento de cada VNF instalado y compartido
@@ -160,12 +161,12 @@ public class ObjectiveFunctionService {
 
             return deployCost;
         } catch (Exception e) {
-            logger.error("Error al calcular el costo de Intalacion o Configurationsiguracion de los VNFs: " + e.getMessage());
+            logger.error("Error al calcular el costo de Intalacion o Configuration de los VNFs: " + e.getMessage());
             throw new Exception();
         }
     }
 
-    private int calculateDistance(List<Link> links) throws Exception {
+    private double calculateDistance(List<Link> links) throws Exception {
         int distance = 0;
         try {
             // suma de las distancias de los enlaces
@@ -362,7 +363,8 @@ public class ObjectiveFunctionService {
     }
 
     //Depende de la implementacion (Reutilizar VNF entre varios flujos)
-    private int calculateNumberIntances(List<Server> servers) throws Exception {
+    // antes retornaba int, cambie por doble por compatibilidad por ahora.
+    private double calculateNumberIntances(List<Server> servers) throws Exception {
         int instances = 0;
         try {
             for (Server server : servers) {
@@ -558,11 +560,14 @@ public class ObjectiveFunctionService {
         } 
     }
 
-    public SolutionTraffic solutionTrafficFOs(Map<String, Node> nodesMap, Map<String, Link> linksMap,
+    public TrafficSolutionMap /*SolutionTraffic*/ solutionTrafficFOs(Map<String, Node> nodesMap, Map<String, Link> linksMap,
             List<Traffic> traffics, Map<String, VnfShared> vnfsShared) throws Exception {
+        
         List<Server> servers = new ArrayList<>();
+        
+        TrafficSolutionMap solution = new TrafficSolutionMap();
         SolutionTraffic solutionTraffic = new SolutionTraffic();
-
+        
         List<Node> nodes = new ArrayList<>(nodesMap.values());
         List<Link> links = new ArrayList<>(linksMap.values());
 
@@ -571,21 +576,33 @@ public class ObjectiveFunctionService {
                 servers.add(node.getServer());
             }
         }
-
-        solutionTraffic.setEnergyCost(calculateEnergyCost(nodes));
-        solutionTraffic.setSloCost(calculateSLOCost(linksMap, traffics, vnfsShared));
-        solutionTraffic.setDelayCost(calculateDelayTotal(servers, links));
-        solutionTraffic.setDistance(calculateDistance(links));
-        solutionTraffic.setBandwidth(calculateBandwidth(links));
-        solutionTraffic.setNumberInstances(calculateNumberIntances(servers));
-        solutionTraffic.setLoadTraffic(calculateLoadTraffic(linksMap, traffics, vnfsShared));
-        solutionTraffic.setResourcesCost(calculateResources(servers));
-        solutionTraffic.setLicencesCost(calculateLicencesCost(servers));
-        solutionTraffic.setFragmentation(calculateResourceFragmentation(servers, links));
+        
+        // Currently in use by Normal and Overloaded Network condition
+        solution.addObjectiveFunctionValue(ObjectiveFunctionEnum.DELAY, calculateDelayTotal(servers, links));
+        solution.addObjectiveFunctionValue(ObjectiveFunctionEnum.LINK_MAX_USE, calculateMaximunUseLink(links));
+        solution.addObjectiveFunctionValue(ObjectiveFunctionEnum.VNF_INSTANCES, calculateNumberIntances(servers));
+        solution.addObjectiveFunctionValue(ObjectiveFunctionEnum.DISTANCE, calculateDistance(links));
+        solution.addObjectiveFunctionValue(ObjectiveFunctionEnum.ENERGY_COST, calculateEnergyCost(nodes));
+        solution.addObjectiveFunctionValue(ObjectiveFunctionEnum.RESOURCES_COST, calculateResources(servers));
+        
+        
+        // TODO: REMOVER - ESTOS SON LOS QUE USAMOS ACTUALMENTE
+        /*solutionTraffic.setDelayCost(calculateDelayTotal(servers, links));        
         solutionTraffic.setMaxUseLink(calculateMaximunUseLink(links));
+        solutionTraffic.setNumberInstances(calculateNumberIntances(servers));
+        solutionTraffic.setSloCost(calculateSLOCost(linksMap, traffics, vnfsShared));   
+        solutionTraffic.setResourcesCost(calculateResources(servers));
+        solutionTraffic.setEnergyCost(calculateEnergyCost(nodes));
+        
+        solutionTraffic.setDistance(calculateDistance(links));
+        solutionTraffic.setBandwidth(calculateBandwidth(links));        
+        solutionTraffic.setLoadTraffic(calculateLoadTraffic(linksMap, traffics, vnfsShared));        
+        solutionTraffic.setLicencesCost(calculateLicencesCost(servers));        
         solutionTraffic.setThroughput(calculateThroughput(traffics));
-
-        return solutionTraffic;
+        solutionTraffic.setFragmentation(calculateResourceFragmentation(servers, links));        
+        */
+        
+        return solution;
     }
 
     public Cost costTotalFOs(Map<String, Node> nodesMap, Map<String, Link> linksMap) throws Exception {
@@ -613,5 +630,4 @@ public class ObjectiveFunctionService {
 
         return cost;
     }
-
 }

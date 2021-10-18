@@ -14,19 +14,19 @@ public class Solutions {
     private List<String> resourcesCostList = new ArrayList<>();
     private List<String> fragmentationList = new ArrayList<>();
     private List<String> sloCostList = new ArrayList<>();
-    private List<String> allLinksCostList = new ArrayList<>();
+    private List<String> allLinksCostList = new ArrayList<>(); // not present
     private List<String> licencesCostList = new ArrayList<>();
     private List<String> maxUseLinkList = new ArrayList<>();
-    private List<Integer> hostSizeList = new ArrayList<>();
-    private List<Integer> delayCostList = new ArrayList<>();
-    private List<Integer> deployCostList = new ArrayList<>();
-    private List<Integer> distanceList = new ArrayList<>();
-    private List<Integer> hopsList = new ArrayList<>();
-    private List<Integer> numberInstancesList = new ArrayList<>();
+    private List<Integer> hostSizeList = new ArrayList<>(); // not present
+    private List<Double> delayCostList = new ArrayList<>();
+    private List<Integer> deployCostList = new ArrayList<>(); // not present
+    private List<Double> distanceList = new ArrayList<>();
+    private List<Integer> hopsList = new ArrayList<>(); // not present
+    private List<Double> numberInstancesList = new ArrayList<>();
     private List<String> throughputList = new ArrayList<>();
-    private List<String> rejectLink = new ArrayList<>();
-    private List<String> rejectNode = new ArrayList<>();
-    private List<String> attendVnfs = new ArrayList<>();
+    private List<String> rejectLink = new ArrayList<>();  // not present
+    private List<String> rejectNode = new ArrayList<>(); // not present
+    private List<String> attendVnfs = new ArrayList<>(); // not present
 
     @Override
     public String toString() {

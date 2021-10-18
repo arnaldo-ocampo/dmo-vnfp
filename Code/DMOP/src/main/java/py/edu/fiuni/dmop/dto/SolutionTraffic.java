@@ -13,9 +13,9 @@ public class SolutionTraffic {
     private Double sloCost;
     private Double licencesCost;
     private Double maxUseLink;
-    private Integer delayCost;
+    private Double delayCost;   // It was defined as int previously
     private Integer distance;
-    private Integer numberInstances;
+    private Double numberInstances; // It was defined as int previously
     private Double throughput;
 
     @Override

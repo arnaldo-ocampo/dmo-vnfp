@@ -10,35 +10,31 @@ public class Cost {
     private ShortestPath shortestPath;
     
     
-    // FIRST ATTEMPT // Initially just the two first of these
-    private int delay;    
-    private int numberInstances;
-    private double maximunUseLink;
-    
-    // FOR LATER USE ONLY //
-    private double energy;    
-    private int distance;
-    private double bandwidth;    
+    ///////////////////////////////////////////////////////////
+    private double delay;               // Prev defined as int 
+    private double maximunUseLink;   
+    private double numberInstances;     // Prev defined as int 
+    private double distance;            // Prev defined as int 
+    private double energy;              // Prev defined as int 
     private double resources;
+    ///////////////////////////////////////////////////////////
+    
+    
+    private double bandwidth;    
     private double licences;
     private double fragmentation;
-    
-
+        
     public Cost(Cost cost) {
         this.delay = cost.getDelay();
         this.numberInstances = cost.getNumberInstances();
         this.maximunUseLink = cost.getMaximunUseLink();
-        
-        
         this.energy = cost.getEnergy();        
         this.distance = cost.getDistance();
         this.bandwidth = cost.getBandwidth();        
         this.resources = cost.getResources();
         this.licences = cost.getLicences();
         this.fragmentation = cost.getFragmentation();
-        
     }
-
-    public Cost() {
-    }
+    
+    public Cost() {}
 }
