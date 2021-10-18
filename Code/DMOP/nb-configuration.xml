@@ -8,8 +8,11 @@ Without this configuration present, some functionality in the IDE may be limited
 -->
     <config-data xmlns="http://www.netbeans.org/ns/maven-config-data/1">
         <configurations>
+            <configuration id="DynamicPlacement" profiles=""/>
             <configuration id="GraphPlotting" profiles=""/>
-            <configuration id="dynamic" profiles=""/>
+            <configuration id="StaticPlacement" profiles=""/>
+            <configuration id="TrafficGeneration" profiles=""/>
+            <configuration id="ManualDynamicPlacement" profiles=""/>
         </configurations>
     </config-data>
 </project-shared-configuration>
