@@ -21,3 +21,19 @@
 
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
+
+/Code/DMOP/target/*
+Code/DMOP/nbactions-release-profile.xml
+Code/DMOP/nbactions.xml
+
+Code/DMOP/src/main/resources/Traffic/traffics.txt
+Code/DMOP/src/main/resources/Traffic/Traffic_0.txt
+Code/DMOP/src/main/resources/Traffic/Traffic_1.txt
+Code/DMOP/src/main/resources/Traffic/Traffic_2.txt
+Code/DMOP/src/main/resources/Traffic/Traffic_3.txt
+Code/DMOP/src/main/resources/Traffic/Traffic_4.txt
+Code/DMOP/src/main/resources/Traffic/Traffic_5.txt
+Code/DMOP/src/main/resources/Traffic/Traffic_6.txt
+Code/DMOP/src/main/resources/Traffic/Traffic_7.txt
+Code/DMOP/src/main/resources/Traffic/Traffic_8.txt
+Code/DMOP/src/main/resources/Traffic/Traffic_9.txt
