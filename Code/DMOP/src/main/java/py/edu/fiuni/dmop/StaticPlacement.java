@@ -12,11 +12,13 @@ public class StaticPlacement {
         try {
             SMOPService smopService = new SMOPService();
             
+            smopService.runMultiWindowsSolutionsAnalyzer();
+            
             // Run the solver for n rounds with different algorithms
             // to find the Virtual Network Functions locations
             // and evaluate de quality of the Pareto Set
             // using the MOEAFramework Analyzer
-            smopService.runSolutionsAnalyzer();
+            //smopService.runSolutionsAnalyzer();
             
             // Run the solver using One algorithm, 
             // to find the Virtual Network Functions locations
