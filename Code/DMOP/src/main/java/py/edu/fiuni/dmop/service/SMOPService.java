@@ -2,8 +2,6 @@ package py.edu.fiuni.dmop.service;
 
 import java.util.List;
 import java.util.Arrays;
-import java.util.Properties;
-import java.util.concurrent.TimeUnit;
 
 import org.apache.log4j.Logger;
 import org.moeaframework.Analyzer;
@@ -11,22 +9,12 @@ import org.moeaframework.Executor;
 import org.moeaframework.core.NondominatedPopulation;
 import org.moeaframework.core.Solution;
 import org.moeaframework.analysis.plot.Plot;
-import org.moeaframework.core.spi.AlgorithmFactory;
 import org.moeaframework.core.variable.Permutation;
-import org.graphstream.graph.Graph;
-import org.graphstream.graph.Node;
-import org.graphstream.graph.implementations.SingleGraph;
 
 import py.edu.fiuni.dmop.util.Configurations;
 import py.edu.fiuni.dmop.problem.StaticVNFPlacementProblem;
-import py.edu.fiuni.dmop.dto.NFVdto.*;
 import py.edu.fiuni.dmop.dto.NFVdto.Traffic;
 import py.edu.fiuni.dmop.dto.ResultGraphMap;
-import py.edu.fiuni.dmop.algorithm.StandardDynamicAlgorithms;
-import py.edu.fiuni.dmop.problem.DynamicVNFPlacementProblem;
-import py.edu.fiuni.dmop.decision.topsis.Alternative;
-import py.edu.fiuni.dmop.decision.topsis.Criteria;
-import py.edu.fiuni.dmop.decision.topsis.Topsis;
 import py.edu.fiuni.dmop.problem.SceneObjectiveFunctions;
 import py.edu.fiuni.dmop.util.NetworkConditionEnum;
 import py.edu.fiuni.dmop.util.ObjectiveFunctionEnum;
@@ -58,6 +46,8 @@ public class SMOPService {
             logger.info("Execution started: ");
             long inicioTotal = System.currentTimeMillis();
 
+            SolutionService solutionService = new SolutionService();
+            
             TrafficService trafficService = new TrafficService();
             List<Traffic> traffics = trafficService.readTraffics();
 
@@ -106,7 +96,10 @@ public class SMOPService {
 
                 int round = 0;
                 for (NondominatedPopulation result : results) {
-                    logger.info(String.format("Pareto Front (Round) %d: %d solutions", round++, result.size()));
+                    
+                    solutionService.writeSolutions(result, "solutions_"+algorithm+"_round"+round+".dat");
+                    
+                    logger.info(String.format("Pareto Front (Round) %d: %d solutions", round, result.size()));
                     int index = 0;
                     for (Solution sol : result) {
                         System.out.print("Solution #" + index++ + " = ");
@@ -117,6 +110,8 @@ public class SMOPService {
                         // Shows the permutation used in the current solution.
                         System.out.println("Variable: " + Arrays.toString(((Permutation) sol.getVariable(0)).toArray()));
                     }
+                    
+                    round++;
                 }
 
                 long fin = System.currentTimeMillis();

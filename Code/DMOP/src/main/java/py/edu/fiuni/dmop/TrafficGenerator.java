@@ -25,18 +25,22 @@ public class TrafficGenerator {
             trafficService.writeTraffics(traffics);
             
             
-            /*
-            int[] windowsTrafficsNumber = { 10, 80, 24, 93, 55, 12, 33, 99, 64, 22 };
-            
-            //int[] windowsTrafficsNumber = { 10, 80, 24, 93, 55, 12, 33, 99, 64, 22 };            
+            // Test during development
             //int[] windowsTrafficsNumber = { 10, 80, 24, 93, 55, 12, 33, 99, 64, 22 };
+            
+            
+            //int[] windowsTrafficsNumber = { 102, 250, 181, 280, 150, 270, 196, 130, 145, 122 };            
+            
+
+            // Full Test
+            int[] windowsTrafficsNumber = { 30, 82, 44, 109, 77, 56, 33, 89, 125, 41, 73, 90 };
             
             List<List<Traffic>> allTraffics = trafficService.generateWindowsTraffics(windowsTrafficsNumber, DataService.nodesMap, DataService.vnfs);
             trafficService.writeAllTraffics(allTraffics);
             
             
             //List<List<Traffic>> readTraffics = trafficService.readAllTraffics(windowsTrafficsNumber.length);
-            */
+            
             
             
         } catch (Exception e) {

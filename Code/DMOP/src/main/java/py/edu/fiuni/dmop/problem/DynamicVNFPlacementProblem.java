@@ -62,21 +62,14 @@ public class DynamicVNFPlacementProblem extends AbstractDynamicProblem {
     }
 
 
-    //@Override
-    /*protected*/ public void changeEnvironment() {
-        /*for(int i=0;i<profit.length;i++){
-            for(int j=0;j<profit[i].length;j++){
-                // Unit Change :  +-%1
-                // Total Change : severityOfChange * Unit Change
-                double unitChange = ((Math.random()/50)-0.01);
-                profit[i][j] += profit[i][j] * unitChange * severityOfChange;
-            }
-        }*/
-
+    //@Override protected
+    public void changeEnvironment() {
+        
         try {
-
+            // move the current windows to the next one
             this.currentWindows++;
-            
+
+            //
             if (randomTrafficsGeneration) {
 
                 Random rn = new Random();
@@ -85,18 +78,22 @@ public class DynamicVNFPlacementProblem extends AbstractDynamicProblem {
                 List<Traffic> newTraffics = trafficService.generateRandomTraffic(newTrafficNumber, DataService.nodesMap, DataService.vnfs);
 
                 this.currentTraffics = newTraffics;
-            }else{
-               this.currentTraffics = allTraffics.get(currentWindows);               
+            } else {
+                this.currentTraffics = allTraffics.get(currentWindows);
             }
-            
+
             this.networkCondition = currentTraffics.size() > normalUpperLimit ? NetworkConditionEnum.Overloaded : NetworkConditionEnum.Normal;
 
             logger.info(String.format("Environment has changed. Windows #%d, Traffics #%d, NetCondition: %s", this.currentWindows, this.currentTraffics.size(), this.networkCondition.toString()));
 
         } catch (Exception ex) {
-            System.out.println("Fatal Error: " + ex.getMessage());
-            ex.printStackTrace();
+            logger.fatal(ex);
         }
+        
+        // Unit Change :  +-%1
+        // Total Change : severityOfChange * Unit Change
+        //double unitChange = ((Math.random()/50)-0.01);
+        //profit[i][j] += profit[i][j] * unitChange * severityOfChange;
     }
 
     @Override
@@ -104,26 +101,49 @@ public class DynamicVNFPlacementProblem extends AbstractDynamicProblem {
 
         VnfService vnfService = new VnfService();
 
-        double[] objectives = new double[getNumberOfObjectives()];
+        //double[] objectives = new double[getNumberOfObjectives()];
         Permutation permutation = (Permutation) solution.getVariable(0);
 
         TrafficSolutionMap solutionsMap = vnfService.placement(this.currentTraffics, permutation);
 
         List<ObjectiveFunctionEnum> sceneObjectives = SceneObjectiveFunctions.SceneMap.get(networkCondition);
 
-        for (int foIndex = 0; foIndex < this.getNumberOfObjectives(); foIndex++) {
-            objectives[foIndex] = solutionsMap.getObjectiveFunctionValueFor(sceneObjectives.get(foIndex));
+        // The solution received by argument could have a different number of OFs
+        // They will be different when we try to evaluate a Solution after a change in the environment.        
+        int foNumber = Math.min(this.getNumberOfObjectives(), solution.getNumberOfObjectives());
+        for (int foIndex = 0; foIndex < foNumber; foIndex++) {
+            //objectives[foIndex] = solutionsMap.getObjectiveFunctionValueFor(sceneObjectives.get(foIndex));
+            solution.setObjective(foIndex, solutionsMap.getObjectiveFunctionValueFor(sceneObjectives.get(foIndex)));
         }
-
-        solution.setObjectives(objectives);
-
+                
+        //solution.setObjectives(objectives);        
+        
         //TODO: Commented while used in manual mode
         //super.evaluate(solution);
     }
 
     @Override
+    public Solution newSolution() {
+        Solution solution = new Solution(getNumberOfVariables(), getNumberOfObjectives());
+
+        // create a permutation with a size equals to the greatest number of traffics expected.
+        //Permutation permutation = new Permutation(this.currentTraffics.size());
+        Permutation permutation = new Permutation(this.upperLimit);
+        permutation.randomize();
+        solution.setVariable(0, permutation);
+
+        // Make sure a new solution has very high fitness value
+        // for every objective function, considering we are minimizing.
+        for (int i = 0; i < getNumberOfObjectives(); i++) {
+            solution.setObjective(i, Integer.MAX_VALUE);
+        }
+
+        return solution;
+    }
+    
+    @Override
     public String getName() {
-        return "DynVNFPlacement";
+        return "DynamicVNFPlacementProblem";
     }
 
     @Override
@@ -142,30 +162,11 @@ public class DynamicVNFPlacementProblem extends AbstractDynamicProblem {
     }
 
     @Override
-    public Solution newSolution() {
-        Solution solution = new Solution(getNumberOfVariables(), getNumberOfObjectives());
-
-        Permutation permutation = new Permutation(this.currentTraffics.size());
-        permutation.randomize();
-        solution.setVariable(0, permutation);
-
-        // Make sure a new solution has very high fitness value
-        // for every objective function, considering we are minimizing.
-        for (int i = 0; i < getNumberOfObjectives(); i++) {
-            solution.setObjective(i, Integer.MAX_VALUE);
-        }
-
-        return solution;
-    }
-
-    @Override
     public void close() {
         // do nothing
     }
 
-    
     // TODO:: REMOVER SI NO USADO
-    
     public int getNumberOfTraffics() {
         return this.currentTraffics.size();
     }
@@ -173,10 +174,11 @@ public class DynamicVNFPlacementProblem extends AbstractDynamicProblem {
     public NetworkConditionEnum getNetworkCondition() {
         return this.networkCondition;
     }
+
     public List<Traffic> getCurrentTraffics() {
         return this.currentTraffics;
     }
-    
+
     public int getCurrentWindows() {
         return this.currentWindows;
     }

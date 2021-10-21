@@ -13,7 +13,8 @@ import org.moeaframework.util.TypedProperties;
 
 import java.util.Properties;
 
-public class StandardDynamicAlgorithms extends AlgorithmProvider {
+public class DynamicAlgorithmsProvider extends AlgorithmProvider {
+
     @Override
     public Algorithm getAlgorithm(String name, Properties properties, Problem problem) {
         TypedProperties typedProperties = new TypedProperties(properties);
@@ -21,6 +22,10 @@ public class StandardDynamicAlgorithms extends AlgorithmProvider {
         try {
             if (name.equalsIgnoreCase("DNSGAIIA") || name.equalsIgnoreCase("DNSGAII-A")) {
                 return newDNSGAIIA(typedProperties, problem);
+
+            } else if (name.equalsIgnoreCase("DNSGAIIB") || name.equalsIgnoreCase("DNSGAII-B")) {
+                return newDNSGAIIB(typedProperties, problem);
+
             } else {
                 return null;
             }
@@ -29,15 +34,6 @@ public class StandardDynamicAlgorithms extends AlgorithmProvider {
         }
     }
 
-    /**
-     * Returns a new {@link NSGAII} instance.
-     *
-     * @param properties
-     *            the properties for customizing the new {@code NSGAII} instance
-     * @param problem
-     *            the problem
-     * @return a new {@code NSGAII} instance
-     */
     private Algorithm newDNSGAIIA(TypedProperties properties, Problem problem) {
         int populationSize = (int) properties.getDouble("populationSize", 100);
 
@@ -54,12 +50,33 @@ public class StandardDynamicAlgorithms extends AlgorithmProvider {
 
         Variation variation = OperatorFactory.getInstance().getVariation(null, properties, problem);
 
-        //Detection detection = new StandardDetection();
-        
-        Detection detection = new NetStatusDetection();
+        Detection detection = new StandardDetection();
 
         double zeta = properties.getDouble("zeta", 0.2d);
 
         return new DNSGAIIA(problem, population, null, selection, variation, initialization, detection, zeta);
+    }
+
+    private Algorithm newDNSGAIIB(TypedProperties properties, Problem problem) {
+        int populationSize = (int) properties.getDouble("populationSize", 100);
+
+        Initialization initialization = new RandomInitialization(problem, populationSize);
+
+        NondominatedSortingPopulation population = new NondominatedSortingPopulation();
+
+        TournamentSelection selection = null;
+
+        if (properties.getBoolean("withReplacement", true)) {
+            selection = new TournamentSelection(2,
+                    new ChainedComparator(new ParetoDominanceComparator(), new CrowdingComparator()));
+        }
+
+        Variation variation = OperatorFactory.getInstance().getVariation(null, properties, problem);
+
+        Detection detection = new StandardDetection();
+
+        double zeta = properties.getDouble("zeta", 0.2d);
+
+        return new DNSGAIIB(problem, population, null, selection, variation, initialization, detection, zeta);
     }
 }

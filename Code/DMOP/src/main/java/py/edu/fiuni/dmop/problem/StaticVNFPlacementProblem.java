@@ -30,7 +30,7 @@ public class StaticVNFPlacementProblem extends AbstractProblem {
      */
     public StaticVNFPlacementProblem(List<Traffic> traffics, NetworkConditionEnum networkCondition) {
         
-        // the number of objective fuctions depends on the Scene we are running on.
+        // the number of objective functions depends on the Scene we are running on.
         super(1, SceneObjectiveFunctions.SceneMap.get(networkCondition).size());
         
         this.traffics = traffics;

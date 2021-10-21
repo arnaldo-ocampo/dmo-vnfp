@@ -28,6 +28,7 @@ public class Configurations {
     
     
     public static String trafficsFolder;
+    public static String solutionsFolder;
     
 
     public static double serverPenaltyCPUCost;
@@ -100,6 +101,7 @@ public class Configurations {
             trafficSfcMax = Integer.parseInt(prop.getProperty("traffic.sfc.max"));
                         
             trafficsFolder = prop.getProperty("traffics.folder");
+            solutionsFolder = prop.getProperty("solutions.folder");
             
             pythonInterpreter = prop.getProperty("python.interpreter.path");
             pythonScript = prop.getProperty("python.script.filepath");

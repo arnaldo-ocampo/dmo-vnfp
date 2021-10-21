@@ -20,14 +20,14 @@ public class ComparingAlgorithms {
     public static void main(String[] args) throws IOException {
         
         String problem = "UF1";
-        String[] algorithms = {"NSGAII", "NSGAIII", "GDE3", "eMOEA"};
+        String[] algorithms = {"NSGAII", "NSGAIII"/*, "GDE3", "eMOEA"*/};
 
         //setup the experiment
         Executor executor = new Executor()
                 .withProblem(problem)
                 //.withCheckpointFrequency(1000)
                 //.withCheckpointFile(new File(Utility.buildFilePath( "example.state")))
-                .withMaxEvaluations(10000);
+                .withMaxEvaluations(1000);
 
         Analyzer analyzer = new Analyzer()
                 .withSameProblemAs(executor)
@@ -38,7 +38,7 @@ public class ComparingAlgorithms {
 
         //run each algorithm for 50 seeds
         for (String algorithm : algorithms) {
-            analyzer.addAll(algorithm, executor.withAlgorithm(algorithm).runSeeds(50));
+            analyzer.addAll(algorithm, executor.withAlgorithm(algorithm).runSeeds(2));
             //analyzer.add(algorithm, executor.withAlgorithm(algorithm).run());
         }
 
@@ -46,6 +46,6 @@ public class ComparingAlgorithms {
         analyzer.printAnalysis();
 
         // Plot the results
-        new Plot().add(analyzer).show();
+        new Plot().add(analyzer).setTitle("un titulo").show();
     }
 }

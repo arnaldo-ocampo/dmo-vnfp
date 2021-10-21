@@ -453,14 +453,14 @@ public class ObjectiveFunctionService {
     }
 
     /**
-     * 
+     *
      * @param solutions
-     * @throws Exception 
+     * @throws Exception
      */
     public void writeSolutions(Solutions solutions) throws Exception {
         String format = ";%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;%s;";
-        try(PrintWriter writer = new PrintWriter(new File(Utility.buildFilePath(Configurations.solutionsFileName)))){
-         
+        try (PrintWriter writer = new PrintWriter(new File(Utility.buildFilePath(Configurations.solutionsFileName)))) {
+
             String header = String.format(format,
                     "Energy Cost(Dolar)",
                     "Bandwidth(MB)",
@@ -482,7 +482,7 @@ public class ObjectiveFunctionService {
                     "Reject-Link",
                     "Reject-Node"
             );
-            
+
             writer.println(header);
 
             /*String header = ";" +
@@ -506,7 +506,6 @@ public class ObjectiveFunctionService {
             "Reject-Link" + ";" +
             "Reject-Node" + "\n";
             objectOutputStream.writeObject(header);*/
-
             for (int i = 0; i < Configurations.numberSolutions; i++) {
                 String result = String.format(format,
                         solutions.getEnergyCostList().get(i),
@@ -530,7 +529,7 @@ public class ObjectiveFunctionService {
                         solutions.getRejectNode().get(i)
                 );
                 writer.println(result);
-                
+
                 //String sb = ";" +
                 //solutions.getEnergyCostList().get(i) + ";" +
                 //solutions.getBandwidthList().get(i) + ";" +
@@ -551,32 +550,30 @@ public class ObjectiveFunctionService {
                 //solutions.getAttendVnfs().get(i) + ";" +
                 //solutions.getRejectLink().get(i) + ";" +
                 //solutions.getRejectNode().get(i) + "\n";
-
                 //objectOutputStream.writeObject(sb);
             }
         } catch (Exception e) {
             logger.error("Error writting solutions into file");
             throw e;
-        } 
+        }
     }
 
-    public TrafficSolutionMap /*SolutionTraffic*/ solutionTrafficFOs(Map<String, Node> nodesMap, Map<String, Link> linksMap,
+    public TrafficSolutionMap solutionTrafficFOs(Map<String, Node> nodesMap, Map<String, Link> linksMap,
             List<Traffic> traffics, Map<String, VnfShared> vnfsShared) throws Exception {
-        
+
         List<Server> servers = new ArrayList<>();
-        
+
         TrafficSolutionMap solution = new TrafficSolutionMap();
-        SolutionTraffic solutionTraffic = new SolutionTraffic();
-        
+
         List<Node> nodes = new ArrayList<>(nodesMap.values());
         List<Link> links = new ArrayList<>(linksMap.values());
 
-        for (Node node : nodes) {
-            if (node.getServer() != null && node.getServer().getVnfs().size() > 0) {
-                servers.add(node.getServer());
-            }
-        }
-        
+        nodes.stream()
+                .filter(node -> (node.getServer() != null && node.getServer().getVnfs().size() > 0))
+                .forEachOrdered(node -> {
+                    servers.add(node.getServer());
+                });
+
         // Currently in use by Normal and Overloaded Network condition
         solution.addObjectiveFunctionValue(ObjectiveFunctionEnum.DELAY, calculateDelayTotal(servers, links));
         solution.addObjectiveFunctionValue(ObjectiveFunctionEnum.LINK_MAX_USE, calculateMaximunUseLink(links));
@@ -584,8 +581,7 @@ public class ObjectiveFunctionService {
         solution.addObjectiveFunctionValue(ObjectiveFunctionEnum.DISTANCE, calculateDistance(links));
         solution.addObjectiveFunctionValue(ObjectiveFunctionEnum.ENERGY_COST, calculateEnergyCost(nodes));
         solution.addObjectiveFunctionValue(ObjectiveFunctionEnum.RESOURCES_COST, calculateResources(servers));
-        
-        
+
         // TODO: REMOVER - ESTOS SON LOS QUE USAMOS ACTUALMENTE
         /*solutionTraffic.setDelayCost(calculateDelayTotal(servers, links));        
         solutionTraffic.setMaxUseLink(calculateMaximunUseLink(links));
@@ -600,8 +596,7 @@ public class ObjectiveFunctionService {
         solutionTraffic.setLicencesCost(calculateLicencesCost(servers));        
         solutionTraffic.setThroughput(calculateThroughput(traffics));
         solutionTraffic.setFragmentation(calculateResourceFragmentation(servers, links));        
-        */
-        
+         */
         return solution;
     }
 
@@ -612,11 +607,11 @@ public class ObjectiveFunctionService {
         List<Node> nodes = new ArrayList<>(nodesMap.values());
         List<Link> links = new ArrayList<>(linksMap.values());
 
-        for (Node node : nodes) {
-            if (node.getServer() != null && node.getServer().getVnfs().size() > 0) {
-                servers.add(node.getServer());
-            }
-        }
+        nodes.stream()
+                .filter(node -> (node.getServer() != null && node.getServer().getVnfs().size() > 0))
+                .forEachOrdered(node -> {
+                    servers.add(node.getServer());
+                });
 
         cost.setEnergy(calculateEnergyCost(nodes));
         cost.setDelay(calculateDelayTotal(servers, links));
