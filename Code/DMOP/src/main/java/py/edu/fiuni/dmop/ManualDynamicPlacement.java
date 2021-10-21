@@ -59,12 +59,9 @@ public class ManualDynamicPlacement {
     private static final int UPPER_LIMIT = 130;
     private static final int NORMAL_UPPER_LIMIT = 75;
     private static final boolean RANDOMIZE_TRAFFICS = false;
-    
-    
+
     private static final int MAX_ROUNDS = 3;
     private static final int MAX_WINDOWS = 2;
-    
-    
 
     // Solution fileName format is::   solution_{ALGORITHM}_r{RoundNumber}_w{WindowsNumber}.dat
     private static final String SOLUTION_FILENAME_TEMPLATE = "solution_%s_r%d_w%d.dat";
@@ -79,7 +76,7 @@ public class ManualDynamicPlacement {
 
             // 
             runSolver();
-            
+
             // Create files to be used by Charts generator
             generateCSVFiles();
 
@@ -95,7 +92,7 @@ public class ManualDynamicPlacement {
             MCDMService decisionService = new MCDMService();
 
             String[] algorithms = {"DNSGAII-B"};
-            
+
             Map<String, Map<Integer, List<RoundData>>> resultsMap = new HashMap<>();
 
             for (String alg : algorithms) {
@@ -211,20 +208,20 @@ public class ManualDynamicPlacement {
     }
 
     private static void createCSVFile(String fileName, List<double[]> rows) {
-        
+
         try (PrintWriter writer = new PrintWriter(new File(Utility.buildFilePath(Configurations.solutionsFolder + "/Charts/" + fileName + ".csv")))) {
-        
+
             // Get the first row values in order to generate the header correctly
             double[] roundValues = rows.get(0);
-        
+
             List<String> header = new ArrayList<>();
             for (int i = 0; i < roundValues.length; i++) {
-                if(roundValues[i] < Double.MAX_VALUE){
-                    header.add("w" + (i+1));
+                if (roundValues[i] < Double.MAX_VALUE) {
+                    header.add("w" + (i + 1));
                 }
-            }                
+            }
             writer.println(header.stream().collect(Collectors.joining(",")));
-            
+
             for (double[] row : rows) {
                 String valuesAsString = Arrays.stream(row).filter(d -> d < Double.MAX_VALUE).mapToObj(String::valueOf).collect(Collectors.joining(","));
                 writer.println(valuesAsString);
@@ -441,8 +438,8 @@ public class ManualDynamicPlacement {
                 // Print the Analyzer results
                 logger.info("Starting Analysis for windows #" + winData.getWindowsNumber());
                 long start = System.currentTimeMillis();
-                analyzer.printAnalysis(new PrintStream(new File(Utility.buildFilePath(Configurations.solutionsFolder + "/analyzer_results_win" + winData.getWindowsNumber() + ".txt"))));
-                analyzer.saveAs(algorithmName, new File(Utility.buildFilePath(Configurations.solutionsFolder + "/analyzer_data_"+algorithmName+"_win" + winData.getWindowsNumber() + ".txt")));
+                analyzer.printAnalysis(new PrintStream(new File(Utility.buildFilePath(Configurations.solutionsFolder + "/analyzer_results_" + algorithmName + "_win" + winData.getWindowsNumber() + ".txt"))));
+                analyzer.saveAs(algorithmName, new File(Utility.buildFilePath(Configurations.solutionsFolder + "/analyzer_data_" + algorithmName + "_win" + winData.getWindowsNumber() + ".txt")));
 
                 analyzer.printAnalysis();
                 long end = System.currentTimeMillis();
