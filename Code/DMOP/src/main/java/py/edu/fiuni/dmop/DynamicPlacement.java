@@ -1,7 +1,7 @@
 package py.edu.fiuni.dmop;
 
 import org.apache.log4j.Logger;
-import py.edu.fiuni.dmop.service.DMOPService;
+import py.edu.fiuni.dmop.service.DMOPServiceTemp;
 
 /**
  *
@@ -16,7 +16,7 @@ public class DynamicPlacement {
         logger.debug("Starting VNF Placement process");
         
         try {
-            DMOPService dmopService = new DMOPService();
+            DMOPServiceTemp dmopService = new DMOPServiceTemp();
             
             // Run the solver using One algorithm, 
             // once it gets the ParetoSet, picks the best one using a MultiCriteria Decision Maker

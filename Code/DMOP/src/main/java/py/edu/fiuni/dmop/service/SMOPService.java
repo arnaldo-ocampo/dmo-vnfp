@@ -18,6 +18,7 @@ import py.edu.fiuni.dmop.problem.StaticVNFPlacementProblem;
 import py.edu.fiuni.dmop.dto.NFVdto.Traffic;
 import py.edu.fiuni.dmop.dto.ResultGraphMap;
 import py.edu.fiuni.dmop.problem.SceneObjectiveFunctions;
+import py.edu.fiuni.dmop.util.Constants;
 import py.edu.fiuni.dmop.util.NetworkConditionEnum;
 import py.edu.fiuni.dmop.util.ObjectiveFunctionEnum;
 import py.edu.fiuni.dmop.util.Utility;
@@ -31,18 +32,6 @@ public class SMOPService {
     
     private static final Logger logger = Logger.getLogger(SMOPService.class);
     
-    private static final int NUMBER_OF_WINDOWS = 12;
-    private static final int LOWER_LIMIT = 10;
-    private static final int UPPER_LIMIT = 130;
-    private static final int NORMAL_UPPER_LIMIT = 75;
-    private static final boolean RANDOMIZE_TRAFFICS = false;
-    
-    private static final int MAX_ROUNDS = 10;
-    private static final int MAX_WINDOWS = 10;
-
-    // Solution fileName format is::   solution_{ALGORITHM}_r{RoundNumber}_w{WindowsNumber}.dat
-    private static final String SOLUTION_FILENAME_TEMPLATE = "solution_%s_r%d_w%d.dat";
-
     /**
      *
      * @throws Exception
@@ -69,7 +58,7 @@ public class SMOPService {
             
             List<ObjectiveFunctionEnum> sceneObjectives = SceneObjectiveFunctions.SceneMap.get(networkCondition);
             
-            String[] algorithms = {"NSGAIII"/*,"MOEAD", "RVEA"*/};
+            String[] algorithms = {"NSGAIII","MOEAD", "RVEA"};
 
             // Number of rounds to run with every algorithm
             int seed = 3;
@@ -78,7 +67,7 @@ public class SMOPService {
             Executor executor = new Executor()
                     .withProblemClass(StaticVNFPlacementProblem.class, traffics, networkCondition)
                     //.withMaxTime(60000)                    
-                    .withMaxEvaluations(1000)
+                    .withMaxEvaluations(250)
                     .distributeOnAllCores();
             
             Analyzer analyzer = new Analyzer()
@@ -87,11 +76,7 @@ public class SMOPService {
                     .includeAdditiveEpsilonIndicator()
                     .includeGenerationalDistance()
                     //.includeInvertedGenerationalDistance()
-                    //.includeMaximumParetoFrontError()                    
-                    //.includeSpacing()
-                    //.includeR1()
-                    //.includeR2()
-                    //.includeR3()
+                    //.includeMaximumParetoFrontError()                                        
                     .showStatisticalSignificance();
 
             // Run each algorithm for "seed" rounds
@@ -220,6 +205,9 @@ public class SMOPService {
          */
     }
     
+    /**
+     * 
+     */
     public void runMultiWindowsSolutionsAnalyzer() {
         try {
             logger.info("Execution started: ");
@@ -228,14 +216,14 @@ public class SMOPService {
             SolutionService solutionService = new SolutionService();
             TrafficService trafficService = new TrafficService();
             
-            List<List<Traffic>> windowsTraffics = trafficService.readAllTraffics(NUMBER_OF_WINDOWS);
+            List<List<Traffic>> windowsTraffics = trafficService.readAllTraffics(Constants.NUMBER_OF_WINDOWS);
             
             String[] algorithms = {"NSGAIII", "MOEAD", "RVEA"};
             
-            for (int windows = 0; windows < MAX_WINDOWS; windows++) {
+            for (int windows = 0; windows < Constants.MAX_WINDOWS; windows++) {
                 
                 List<Traffic> traffics = windowsTraffics.get(windows);
-                NetworkConditionEnum networkCondition = traffics.size() > NORMAL_UPPER_LIMIT ? NetworkConditionEnum.Overloaded : NetworkConditionEnum.Normal;
+                NetworkConditionEnum networkCondition = traffics.size() > Constants.NORMAL_UPPER_LIMIT ? NetworkConditionEnum.Overloaded : NetworkConditionEnum.Normal;
                 
                 List<ObjectiveFunctionEnum> sceneObjectives = SceneObjectiveFunctions.SceneMap.get(networkCondition);
 
@@ -257,7 +245,7 @@ public class SMOPService {
                     
                     long inicio = System.currentTimeMillis();
                     
-                    List<NondominatedPopulation> results = executor.withAlgorithm(algorithm).runSeeds(MAX_ROUNDS);
+                    List<NondominatedPopulation> results = executor.withAlgorithm(algorithm).runSeeds(Constants.MAX_ROUNDS);
 
                     // Results added to analyzer only if all of NondominatedPopulation have more than one solution.
                     if (results.stream().allMatch(ndp -> ndp.size() > 1)) {
@@ -270,7 +258,7 @@ public class SMOPService {
                     for (NondominatedPopulation result : results) {
                         
                         try {
-                            String fileName = String.format(SOLUTION_FILENAME_TEMPLATE, algorithm, round, windows);
+                            String fileName = String.format(Constants.SOLUTION_FILENAME_TEMPLATE, algorithm, round, windows);
                             solutionService.writeSolutions(result, fileName);
                         } catch (Exception ex) {
                             logger.fatal("Error:", ex);
