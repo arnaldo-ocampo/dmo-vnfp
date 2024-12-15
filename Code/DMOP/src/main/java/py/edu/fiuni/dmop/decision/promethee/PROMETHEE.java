@@ -1,62 +1,79 @@
 package py.edu.fiuni.dmop.decision.promethee;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import py.edu.fiuni.dmop.decision.DecisionMaker;
+import py.edu.fiuni.dmop.decision.DecisionMakerException;
+import py.edu.fiuni.dmop.decision.topsis.Alternative;
+import py.edu.fiuni.dmop.decision.topsis.Criteria;
 
-/**
- * Implementación del método PROMETHEE.
-  * Referencia: María Siles Luna, "Implementación de Métodos de Toma de Decisiones Multicriterio usando Matlab", 2015.
- *
- * @author Marcelo Ferreira
- */
-public class PROMETHEE {
+import java.util.List;
+
+public class PROMETHEE extends DecisionMaker {
     private final List<Alternative> alternatives;
     private final List<Criteria> criteria;
+    private final double[] weights;
+    private double[][] preferenceMatrix;
+    private double[] positiveFlow;
+    private double[] negativeFlow;
 
-    public PROMETHEE(List<Alternative> alternatives, List<Criteria> criteria) {
+    public PROMETHEE(List<Alternative> alternatives, List<Criteria> criteria, double[] weights) {
         this.alternatives = alternatives;
         this.criteria = criteria;
+        this.weights = weights;
     }
 
-    public Map<Alternative, Double> calculateFlows() {
-        Map<Alternative, Double> netFlows = new HashMap<>();
+    @Override
+    public Alternative calculateOptimalSolution() throws DecisionMakerException {
+        try {
+            calculatePreferenceMatrix();
+            calculateFlows();
+            return determineBestAlternative();
+        } catch (Exception e) {
+            throw new DecisionMakerException("Error during PROMETHEE calculation: " + e.getMessage());
+        }
+    }
 
-        for (Alternative a : alternatives) {
-            double positiveFlow = 0;
-            double negativeFlow = 0;
-
-            for (Alternative b : alternatives) {
-                if (!a.equals(b)) {
-                    double preference = calculateAggregatePreference(a, b);
-                    positiveFlow += preference;
-                    negativeFlow += calculateAggregatePreference(b, a);
+    private void calculatePreferenceMatrix() {
+        int size = alternatives.size();
+        preferenceMatrix = new double[size][size];
+        for (int i = 0; i < size; i++) {
+            for (int j = 0; j < size; j++) {
+                if (i != j) {
+                    double preference = 0.0;
+                    for (int k = 0; k < criteria.size(); k++) {
+                        double diff = alternatives.get(i).getCriteriaValues().get(k).getValue() -
+                                alternatives.get(j).getCriteriaValues().get(k).getValue();
+                        preference += weights[k] * Math.max(0, diff); // Linear preference function
+                    }
+                    preferenceMatrix[i][j] = preference;
                 }
             }
-
-            double netFlow = positiveFlow - negativeFlow;
-            netFlows.put(a, netFlow);
         }
-
-        return netFlows;
     }
 
-    private double calculateAggregatePreference(Alternative a, Alternative b) {
-        double aggregatePreference = 0;
+    private void calculateFlows() {
+        int size = alternatives.size();
+        positiveFlow = new double[size];
+        negativeFlow = new double[size];
 
-        for (Criteria c : criteria) {
-            double diff = a.getEvaluations().get(c) - b.getEvaluations().get(c);
-            PreferenceFunction pf = new PreferenceFunction(0.1, 0.2); // Umbrales de ejemplo
-            aggregatePreference += pf.calculatePreference(diff) * c.getWeight();
+        for (int i = 0; i < size; i++) {
+            for (int j = 0; j < size; j++) {
+                if (i != j) {
+                    positiveFlow[i] += preferenceMatrix[i][j];
+                    negativeFlow[i] += preferenceMatrix[j][i];
+                }
+            }
         }
-
-        return aggregatePreference;
     }
 
-    public void printResults(Map<Alternative, Double> netFlows) {
-        System.out.println("Resultados PROMETHEE:");
-        netFlows.entrySet().stream()
-                .sorted((e1, e2) -> Double.compare(e2.getValue(), e1.getValue()))
-                .forEach(entry -> System.out.println("Alternative: " + entry.getKey().getName() + " - Net Flow: " + entry.getValue()));
+    private Alternative determineBestAlternative() {
+        double[] netFlow = new double[alternatives.size()];
+        int bestIndex = 0;
+        for (int i = 0; i < alternatives.size(); i++) {
+            netFlow[i] = positiveFlow[i] - negativeFlow[i];
+            if (netFlow[i] > netFlow[bestIndex]) {
+                bestIndex = i;
+            }
+        }
+        return alternatives.get(bestIndex);
     }
 }
