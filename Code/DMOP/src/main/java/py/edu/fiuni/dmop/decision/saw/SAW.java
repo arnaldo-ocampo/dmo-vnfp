@@ -8,6 +8,10 @@ import py.edu.fiuni.dmop.decision.topsis.Criteria;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Implementado adaptado de:
+ * https://github.com/grecubogdan13/multicriterial_decisions
+ */
 public class SAW extends DecisionMaker {
     private List<Alternative> alternatives;
     private List<Criteria> criteria;
