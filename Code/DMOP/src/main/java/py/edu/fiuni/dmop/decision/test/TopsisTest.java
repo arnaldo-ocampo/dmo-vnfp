@@ -1,0 +1,53 @@
+package py.edu.fiuni.dmop.decision.test;
+
+import py.edu.fiuni.dmop.decision.topsis.Alternative;
+import py.edu.fiuni.dmop.decision.topsis.Criteria;
+import py.edu.fiuni.dmop.decision.topsis.Topsis;
+
+import java.util.ArrayList;
+import java.util.List;
+
+public class TopsisTest {
+    public static void main(String[] args) {
+        // Definir criterios
+        Criteria criteria1 = new Criteria("Cost", 0); // Costo
+        Criteria criteria2 = new Criteria("Quality", 0); // Calidad
+        Criteria criteria3 = new Criteria("Delivery Time", 0); // Tiempo de entrega
+        List<Criteria> criteriaList = new ArrayList<>();
+        criteriaList.add(criteria1);
+        criteriaList.add(criteria2);
+        criteriaList.add(criteria3);
+
+        // Definir alternativas
+        Alternative alt1 = new Alternative("Supplier A");
+        alt1.addCriteriaValue(criteria1, 500);  // Costo
+        alt1.addCriteriaValue(criteria2, 8);    // Calidad
+        alt1.addCriteriaValue(criteria3, 3);    // Tiempo de entrega
+
+        Alternative alt2 = new Alternative("Supplier B");
+        alt2.addCriteriaValue(criteria1, 450);  // Costo
+        alt2.addCriteriaValue(criteria2, 7);    // Calidad
+        alt2.addCriteriaValue(criteria3, 5);    // Tiempo de entrega
+
+        Alternative alt3 = new Alternative("Supplier C");
+        alt3.addCriteriaValue(criteria1, 550);  // Costo
+        alt3.addCriteriaValue(criteria2, 9);    // Calidad
+        alt3.addCriteriaValue(criteria3, 4);    // Tiempo de entrega
+
+        List<Alternative> alternatives = new ArrayList<>();
+        alternatives.add(alt1);
+        alternatives.add(alt2);
+        alternatives.add(alt3);
+
+        // Crear objeto Topsis
+        Topsis topsis = new Topsis(alternatives);
+
+        try {
+            // Calcular la mejor alternativa
+            Alternative bestAlternative = topsis.calculateOptimalSolution();
+            System.out.println("La mejor alternativa es: " + bestAlternative.getName());
+        } catch (Exception e) {
+            System.err.println("Error al calcular la mejor alternativa: " + e.getMessage());
+        }
+    }
+}

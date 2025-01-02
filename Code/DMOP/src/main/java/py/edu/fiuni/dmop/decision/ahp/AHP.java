@@ -27,7 +27,6 @@ public class AHP extends DecisionMaker {
     @Override
     public Alternative calculateOptimalSolution() throws DecisionMakerException {
         try {
-            createPairwiseComparisonMatrix();
             calculateWeights();
             double[] globalScores = calculateGlobalScores();
             return determineBestAlternative(globalScores);
@@ -36,22 +35,11 @@ public class AHP extends DecisionMaker {
         }
     }
 
-    private void createPairwiseComparisonMatrix() {
-        int size = criteria.size();
-        pairwiseComparisonMatrix = new double[size][size];
-        Scanner input = new Scanner(System.in);
-        System.out.println("Enter pairwise comparison values:");
-        for (int i = 0; i < size; i++) {
-            for (int j = 0; j < size; j++) {
-                if (i == j) {
-                    pairwiseComparisonMatrix[i][j] = 1.0;
-                } else {
-                    System.out.printf("Criteria %s vs %s: ", criteria.get(i).getName(), criteria.get(j).getName());
-                    pairwiseComparisonMatrix[i][j] = input.nextDouble();
-                    pairwiseComparisonMatrix[j][i] = 1.0 / pairwiseComparisonMatrix[i][j];
-                }
-            }
+    public void setPairwiseComparisonMatrix(double[][] matrix) {
+        if (matrix.length != criteria.size() || matrix[0].length != criteria.size()) {
+            throw new IllegalArgumentException("Matrix size must match the number of criteria.");
         }
+        this.pairwiseComparisonMatrix = matrix;
     }
 
     private void calculateWeights() {
