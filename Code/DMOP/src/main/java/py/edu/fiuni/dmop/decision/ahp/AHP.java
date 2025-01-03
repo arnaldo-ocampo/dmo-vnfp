@@ -27,8 +27,9 @@ public class AHP extends DecisionMaker {
     @Override
     public Alternative calculateOptimalSolution() throws DecisionMakerException {
         try {
+            normalizeCriteriaValues(); // Normaliza los valores de los criterios antes de calcular los pesos
             calculateWeights();
-            calculateGlobalScores(); // Ahora establece los puntajes en las alternativas
+            calculateGlobalScores(); // Establece los puntajes en las alternativas
             return determineBestAlternative();
         } catch (Exception e) {
             throw new DecisionMakerException("Error during AHP calculation: " + e.getMessage());
@@ -47,7 +48,7 @@ public class AHP extends DecisionMaker {
         weights = new double[size];
         double[] columnSums = new double[size];
 
-        // Normalize columns
+        // Normaliza las columnas
         for (int j = 0; j < size; j++) {
             for (int i = 0; i < size; i++) {
                 columnSums[j] += pairwiseComparisonMatrix[i][j];
@@ -59,7 +60,7 @@ public class AHP extends DecisionMaker {
             }
         }
 
-        // Calculate weights as the average of normalized rows
+        // Calcula los pesos como el promedio de las filas normalizadas
         for (int i = 0; i < size; i++) {
             double rowSum = 0.0;
             for (int j = 0; j < size; j++) {
@@ -91,5 +92,39 @@ public class AHP extends DecisionMaker {
             }
         }
         return alternatives.get(bestIndex);
+    }
+
+    private void normalizeCriteriaValues() {
+        // Normalizar cada criterio de cada alternativa
+        for (int j = 0; j < criteria.size(); j++) {
+            double min = Double.MAX_VALUE;
+            double max = -Double.MAX_VALUE;
+
+            // Encuentra los valores mínimo y máximo de este criterio
+            for (int i = 0; i < alternatives.size(); i++) {
+                double value = alternatives.get(i).getCriteriaValues().get(j).getValue();
+                if (value < min) {
+                    min = value;
+                }
+                if (value > max) {
+                    max = value;
+                }
+            }
+
+            // Verificar si max y min son iguales para evitar la división por cero
+            if (max != min) {
+                // Normaliza los valores para este criterio
+                for (int i = 0; i < alternatives.size(); i++) {
+                    double value = alternatives.get(i).getCriteriaValues().get(j).getValue();
+                    double normalizedValue = (value - min) / (max - min);
+                    alternatives.get(i).getCriteriaValues().get(j).setValue(normalizedValue);
+                }
+            } else {
+                // Si max y min son iguales, no se puede normalizar, se asigna un valor por defecto (por ejemplo, 0)
+                for (int i = 0; i < alternatives.size(); i++) {
+                    alternatives.get(i).getCriteriaValues().get(j).setValue(0); // O cualquier valor que sea adecuado
+                }
+            }
+        }
     }
 }
