@@ -25,8 +25,15 @@ public class SAW extends DecisionMaker {
     public Alternative calculateOptimalSolution() throws DecisionMakerException {
         normalize();
         List<Double> scores = calculateScores();
+
+        // Asignar puntuaciones calculadas a cada alternativa
+        for (int i = 0; i < alternatives.size(); i++) {
+            alternatives.get(i).setCalculatedPerformanceScore(scores.get(i));
+        }
+
         return getBestAlternative(scores);
     }
+
 
     private void normalize() {
         for (int j = 0; j < criteria.size(); j++) {

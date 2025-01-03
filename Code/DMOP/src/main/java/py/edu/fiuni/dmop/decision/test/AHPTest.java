@@ -53,6 +53,16 @@ public class AHPTest {
         try {
             // Calcular la mejor alternativa
             Alternative bestAlternative = ahp.calculateOptimalSolution();
+
+            // Mostrar los puntajes calculados en formato de tabla
+            System.out.println("Alternativa       | Puntaje Calculado");
+            System.out.println("------------------|------------------");
+            for (Alternative alternative : alternatives) {
+                System.out.printf("%-17s | %.4f%n", alternative.getName(), alternative.getCalculatedPerformanceScore());
+            }
+
+            // Mostrar la mejor alternativa
+            System.out.println("------------------|------------------");
             System.out.println("La mejor alternativa es: " + bestAlternative.getName());
         } catch (Exception e) {
             System.err.println("Error al calcular la mejor alternativa: " + e.getMessage());

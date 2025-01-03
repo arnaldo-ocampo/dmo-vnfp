@@ -1,9 +1,9 @@
 package py.edu.fiuni.dmop.decision.test;
 
+import py.edu.fiuni.dmop.decision.DecisionMakerException;
 import py.edu.fiuni.dmop.decision.saw.SAW;
 import py.edu.fiuni.dmop.decision.topsis.Alternative;
 import py.edu.fiuni.dmop.decision.topsis.Criteria;
-import py.edu.fiuni.dmop.decision.DecisionMakerException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -46,7 +46,28 @@ public class SAWTest {
         try {
             // Calcular la mejor alternativa
             Alternative bestAlternative = saw.calculateOptimalSolution();
-            System.out.println("La mejor alternativa es: " + bestAlternative.getName());
+
+            // Encabezado de la tabla
+            System.out.printf("%-15s", "Alternativa");
+            for (Criteria crit : criteriaList) {
+                System.out.printf("%-20s", crit.getName());
+            }
+            System.out.printf("%-15s\n", "Puntuación Total");
+
+            System.out.println("=".repeat(15 + 20 * criteriaList.size() + 15));
+
+            // Imprimir información de cada alternativa
+            for (Alternative alt : alternatives) {
+                System.out.printf("%-15s", alt.getName());
+                for (int i = 0; i < criteriaList.size(); i++) {
+                    double value = alt.getCriteriaValues().get(i).getValue();
+                    System.out.printf("%-20.4f", value);
+                }
+                System.out.printf("%-15.4f\n", alt.getCalculatedPerformanceScore());
+            }
+
+            // Imprimir la mejor alternativa
+            System.out.println("\nLa mejor alternativa es: " + bestAlternative.getName());
         } catch (DecisionMakerException e) {
             System.err.println("Error al calcular la mejor alternativa: " + e.getMessage());
         }

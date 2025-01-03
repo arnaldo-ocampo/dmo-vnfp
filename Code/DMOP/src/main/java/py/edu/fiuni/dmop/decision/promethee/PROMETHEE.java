@@ -1,5 +1,6 @@
 package py.edu.fiuni.dmop.decision.promethee;
 
+import lombok.Getter;
 import py.edu.fiuni.dmop.decision.DecisionMaker;
 import py.edu.fiuni.dmop.decision.DecisionMakerException;
 import py.edu.fiuni.dmop.decision.topsis.Alternative;
@@ -12,7 +13,9 @@ public class PROMETHEE extends DecisionMaker {
     private final List<Criteria> criteria;
     private final double[] weights;
     private double[][] preferenceMatrix;
+    @Getter
     private double[] positiveFlow;
+    @Getter
     private double[] negativeFlow;
 
     public PROMETHEE(List<Alternative> alternatives, List<Criteria> criteria, double[] weights) {
@@ -76,4 +79,5 @@ public class PROMETHEE extends DecisionMaker {
         }
         return alternatives.get(bestIndex);
     }
+
 }

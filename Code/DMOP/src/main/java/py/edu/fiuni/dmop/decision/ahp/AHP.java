@@ -28,8 +28,8 @@ public class AHP extends DecisionMaker {
     public Alternative calculateOptimalSolution() throws DecisionMakerException {
         try {
             calculateWeights();
-            double[] globalScores = calculateGlobalScores();
-            return determineBestAlternative(globalScores);
+            calculateGlobalScores(); // Ahora establece los puntajes en las alternativas
+            return determineBestAlternative();
         } catch (Exception e) {
             throw new DecisionMakerException("Error during AHP calculation: " + e.getMessage());
         }
@@ -69,22 +69,24 @@ public class AHP extends DecisionMaker {
         }
     }
 
-    private double[] calculateGlobalScores() {
-        double[] globalScores = new double[alternatives.size()];
+    private void calculateGlobalScores() {
         for (int i = 0; i < alternatives.size(); i++) {
             Alternative alternative = alternatives.get(i);
             List<CriteriaValue> criteriaValues = alternative.getCriteriaValues();
+            double globalScore = 0.0;
             for (int j = 0; j < criteriaValues.size(); j++) {
-                globalScores[i] += criteriaValues.get(j).getValue() * weights[j];
+                globalScore += criteriaValues.get(j).getValue() * weights[j];
             }
+            // Establecer el puntaje calculado en la alternativa
+            alternative.setCalculatedPerformanceScore(globalScore);
         }
-        return globalScores;
     }
 
-    private Alternative determineBestAlternative(double[] globalScores) {
+    private Alternative determineBestAlternative() {
         int bestIndex = 0;
-        for (int i = 1; i < globalScores.length; i++) {
-            if (globalScores[i] > globalScores[bestIndex]) {
+        for (int i = 1; i < alternatives.size(); i++) {
+            if (alternatives.get(i).getCalculatedPerformanceScore() >
+                    alternatives.get(bestIndex).getCalculatedPerformanceScore()) {
                 bestIndex = i;
             }
         }

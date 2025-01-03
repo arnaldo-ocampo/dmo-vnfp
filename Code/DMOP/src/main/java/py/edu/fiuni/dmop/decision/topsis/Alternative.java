@@ -64,7 +64,7 @@ public class Alternative {
         return calculatedPerformanceScore;
     }
 
-    protected void setCalculatedPerformanceScore(double calculatedPerformanceScore) {
+    public void setCalculatedPerformanceScore(double calculatedPerformanceScore) {
         this.calculatedPerformanceScore = calculatedPerformanceScore;
     }
 }

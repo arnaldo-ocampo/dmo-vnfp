@@ -48,6 +48,21 @@ public class PROMETHEETest {
         try {
             // Calcular la mejor alternativa
             Alternative bestAlternative = promethee.calculateOptimalSolution();
+
+            // Mostrar resultados en formato de tabla
+            System.out.println("Alternativa       | Flujo Positivo | Flujo Negativo | Flujo Neto");
+            System.out.println("------------------|----------------|----------------|------------");
+            for (int i = 0; i < alternatives.size(); i++) {
+                Alternative alternative = alternatives.get(i);
+                System.out.printf("%-17s | %-14.4f | %-14.4f | %-10.4f%n",
+                        alternative.getName(),
+                        promethee.getPositiveFlow()[i],
+                        promethee.getNegativeFlow()[i],
+                        promethee.getPositiveFlow()[i] - promethee.getNegativeFlow()[i]);
+            }
+
+            // Mostrar la mejor alternativa
+            System.out.println("------------------|----------------|----------------|------------");
             System.out.println("La mejor alternativa es: " + bestAlternative.getName());
         } catch (Exception e) {
             System.err.println("Error al calcular la mejor alternativa: " + e.getMessage());
