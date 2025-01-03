@@ -7,6 +7,7 @@ import py.edu.fiuni.dmop.decision.topsis.Alternative;
 import py.edu.fiuni.dmop.decision.topsis.Criteria;
 
 import java.util.List;
+import java.util.Map;
 
 public class PROMETHEE extends DecisionMaker {
     private final List<Alternative> alternatives;
@@ -27,11 +28,26 @@ public class PROMETHEE extends DecisionMaker {
     @Override
     public Alternative calculateOptimalSolution() throws DecisionMakerException {
         try {
+            normalizeCriteriaValues(); // Normalizar antes de los cálculos
             calculatePreferenceMatrix();
             calculateFlows();
             return determineBestAlternative();
         } catch (Exception e) {
             throw new DecisionMakerException("Error during PROMETHEE calculation: " + e.getMessage());
+        }
+    }
+
+    private void normalizeCriteriaValues() {
+        for (int k = 0; k < criteria.size(); k++) {
+            int finalK = k;
+            double max = alternatives.stream()
+                    .mapToDouble(alt -> alt.getCriteriaValues().get(finalK).getValue())
+                    .max()
+                    .orElse(1); // Evitar división por cero
+            for (Alternative alt : alternatives) {
+                double value = alt.getCriteriaValues().get(k).getValue();
+                alt.getCriteriaValues().get(k).setValue(value / max); // Normalizar valor
+            }
         }
     }
 
@@ -79,5 +95,4 @@ public class PROMETHEE extends DecisionMaker {
         }
         return alternatives.get(bestIndex);
     }
-
 }
