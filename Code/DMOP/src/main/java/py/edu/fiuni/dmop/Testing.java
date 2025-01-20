@@ -99,9 +99,14 @@ public class Testing {
 
             // Decision Making
             MCDMService decisionService = new MCDMService();
-            Solution bestSolution1 = decisionService.calculateOptimalSolution(result1, networkCondition);
-            Solution bestSolution2 = decisionService.calculateOptimalSolution(result2, networkCondition);
-            Solution bestSolution3 = decisionService.calculateOptimalSolution(result3, networkCondition);
+
+// Definir el algoritmo a usar dinámicamente
+            String selectedAlgorithm = "AHP"; // Cambiar por el algoritmo deseado
+
+            Solution bestSolution1 = decisionService.calculateOptimalSolution(result1, networkCondition, selectedAlgorithm);
+            Solution bestSolution2 = decisionService.calculateOptimalSolution(result2, networkCondition, selectedAlgorithm);
+            Solution bestSolution3 = decisionService.calculateOptimalSolution(result3, networkCondition, selectedAlgorithm);
+
 
             Permutation bestVar1 = (Permutation) bestSolution1.getVariable(0);
             System.out.println("Permutation Variable 1: " + Arrays.toString(bestVar1.toArray()) + " Fitness:: " + Arrays.toString(bestSolution1.getObjectives()));

@@ -10,7 +10,9 @@ import org.moeaframework.core.NondominatedPopulation;
 import org.moeaframework.core.Solution;
 import org.moeaframework.core.variable.Permutation;
 import py.edu.fiuni.dmop.TrafficGenerator;
+import py.edu.fiuni.dmop.decision.DecisionMaker;
 import py.edu.fiuni.dmop.decision.DecisionMakerException;
+import py.edu.fiuni.dmop.decision.DecisionMakerFactory;
 import py.edu.fiuni.dmop.decision.topsis.Alternative;
 import py.edu.fiuni.dmop.decision.topsis.Criteria;
 import py.edu.fiuni.dmop.decision.topsis.Topsis;
@@ -31,12 +33,50 @@ public class MCDMService {
 
     }
 
+    public Solution calculateOptimalSolution(
+            NondominatedPopulation result,
+            NetworkConditionEnum networkCondition,
+            String algorithm) throws DecisionMakerException {
+
+        List<ObjectiveFunctionEnum> sceneObjectives = SceneObjectiveFunctions.SceneMap.get(networkCondition);
+
+        // Crear criterios con pesos iguales
+        double weight = 1.0 / sceneObjectives.size();
+        List<Criteria> criteriaList = new ArrayList<>();
+        for (ObjectiveFunctionEnum objFuncEnum : sceneObjectives) {
+            criteriaList.add(new Criteria(objFuncEnum.getName(), weight, objFuncEnum.isMinimizable()));
+        }
+
+        // Crear alternativas
+        List<Alternative> alternatives = new ArrayList<>();
+        for (int solIndex = 0; solIndex < result.size(); solIndex++) {
+            Solution solution = result.get(solIndex);
+            Alternative alt = new Alternative(Integer.toString(solIndex));
+            for (int crIndex = 0; crIndex < criteriaList.size(); crIndex++) {
+                alt.addCriteriaValue(criteriaList.get(crIndex), solution.getObjective(crIndex));
+            }
+            alternatives.add(alt);
+        }
+
+        // Obtener el algoritmo deseado desde la fábrica
+        DecisionMaker decisionMaker = DecisionMakerFactory.getDecisionMaker(algorithm, alternatives, criteriaList);
+
+        // Calcular la solución óptima
+        Alternative optimalAlternative = decisionMaker.calculateOptimalSolution();
+        Solution best = result.get(Integer.parseInt(optimalAlternative.getName()));
+
+        System.out.println("The optimal solution is: " + optimalAlternative.getName());
+        System.out.println("The optimal solution score is: " + optimalAlternative.getCalculatedPerformanceScore());
+
+        return best;
+    }
+
     /**
-     * 
+     *
      * @param result
      * @param networkCondition
      * @return
-     * @throws DecisionMakerException 
+     * @throws DecisionMakerException
      */
     public Solution calculateOptimalSolution(NondominatedPopulation result, NetworkConditionEnum networkCondition) throws DecisionMakerException {
 
@@ -44,7 +84,7 @@ public class MCDMService {
 
         Topsis topsis = new Topsis();
 
-        // Use the same weight for all of the criterias 
+        // Use the same weight for all of the criterias
         // (every objective function has the same priority)
         double weight = 1.0 / sceneObjectives.size();
 
@@ -72,7 +112,7 @@ public class MCDMService {
         topsis.printDetailedResults();
         System.out.println("The optimal solution is: " + topsisOptimal.getName());
         System.out.println("The optimal solution score is: " + topsisOptimal.getCalculatedPerformanceScore());
-   
+
         return best;
 
     }
