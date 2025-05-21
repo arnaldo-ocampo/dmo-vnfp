@@ -3,68 +3,77 @@ package py.edu.fiuni.dmop.decision.topsis;
 import java.util.ArrayList;
 import java.util.List;
 
-/*
- * 
+/**
+ * Clase que representa una alternativa en el proceso de toma de decisiones multicriterio.
+ * Una alternativa es una opción que se evalúa según múltiples criterios.
+ * Cada alternativa tiene un conjunto de valores que representan su desempeño en cada criterio.
+ *
  * @author danigpam
  * https://github.com/danigpam
- * 
  */
 public class Alternative {
+    private String name;                           // Nombre de la alternativa
+    private List<CriteriaValue> criteriaValues;    // Valores de los criterios para esta alternativa
+    private double calculatedPerformanceScore;     // Puntuación calculada por el algoritmo de decisión
 
-    private String name;
-    private List<CriteriaValue> criteriaValues;
-    private double calculatedPerformanceScore;
-
-    public Alternative(String name, List<CriteriaValue> criteriaValues) {
-        super();
-        this.name = name;
-        this.criteriaValues = criteriaValues;
-    }
-
+    /**
+     * Constructor de la clase Alternative.
+     * @param name Nombre de la alternativa
+     */
     public Alternative(String name) {
-        super();
         this.name = name;
+        this.criteriaValues = new ArrayList<>();
+        this.calculatedPerformanceScore = 0.0;
     }
 
-    public Alternative() {
-        super();
+    /**
+     * Agrega un valor para un criterio específico.
+     * @param criteriaValue Valor del criterio a agregar
+     */
+    public void addCriteriaValue(CriteriaValue criteriaValue) {
+        criteriaValues.add(criteriaValue);
     }
 
+    /**
+     * Obtiene el valor de un criterio específico.
+     * @param criteriaName Nombre del criterio
+     * @return El valor del criterio, o null si no existe
+     */
+    public CriteriaValue getCriteriaValue(String criteriaName) {
+        for (CriteriaValue value : criteriaValues) {
+            if (value.getCriteria().getName().equals(criteriaName)) {
+                return value;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * @return El nombre de la alternativa
+     */
     public String getName() {
         return name;
     }
 
-    public void setName(String name) {
-        this.name = name;
-    }
-
+    /**
+     * @return La lista de valores de los criterios
+     */
     public List<CriteriaValue> getCriteriaValues() {
         return criteriaValues;
     }
 
-    public void setCriteriaValues(List<CriteriaValue> criteriaValues) {
-        this.criteriaValues = criteriaValues;
-    }
-
-    public void addCriteriaValue(CriteriaValue criteriaValue) {
-        if (criteriaValues == null) {
-            criteriaValues = new ArrayList<CriteriaValue>();
-        }
-        this.criteriaValues.add(criteriaValue);
-    }
-
-    public void addCriteriaValue(Criteria criteria, double value) {
-        if (criteriaValues == null) {
-            criteriaValues = new ArrayList<CriteriaValue>();
-        }
-        this.criteriaValues.add(new CriteriaValue(criteria, value));
-    }
-
+    /**
+     * @return La puntuación calculada por el algoritmo de decisión
+     */
     public double getCalculatedPerformanceScore() {
         return calculatedPerformanceScore;
     }
 
-    public void setCalculatedPerformanceScore(double calculatedPerformanceScore) {
-        this.calculatedPerformanceScore = calculatedPerformanceScore;
+    /**
+     * Establece la puntuación calculada por el algoritmo de decisión.
+     * @param score Nueva puntuación
+     */
+    public void setCalculatedPerformanceScore(double score) {
+        this.calculatedPerformanceScore = score;
     }
 }

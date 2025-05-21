@@ -9,7 +9,7 @@ import java.util.List;
 
 public class AHPTest {
     public static void main(String[] args) {
-        // Definir criterios
+        // Definir criterios con pesos 0 (igual importancia)
         Criteria criteria1 = new Criteria("Cost", 0);
         Criteria criteria2 = new Criteria("Quality", 0);
         Criteria criteria3 = new Criteria("Delivery Time", 0);
@@ -51,21 +51,28 @@ public class AHPTest {
         ahp.setPairwiseComparisonMatrix(comparisonMatrix);
 
         try {
-            // Calcular la mejor alternativa
-            Alternative bestAlternative = ahp.calculateOptimalSolution();
-
-            // Mostrar los puntajes calculados en formato de tabla
-            System.out.println("Alternativa       | Puntaje Calculado");
-            System.out.println("------------------|------------------");
-            for (Alternative alternative : alternatives) {
-                System.out.printf("%-17s | %.4f%n", alternative.getName(), alternative.getCalculatedPerformanceScore());
+            // Calcular la solución óptima
+            Alternative best = ahp.calculateOptimalSolution();
+            
+            // Verificar consistencia
+            if (ahp.isConsistent()) {
+                System.out.println("Consistency Ratio: " + ahp.getConsistencyRatio());
+                System.out.println("Best alternative: " + best.getName());
+                System.out.println("Score: " + best.getCalculatedPerformanceScore());
+                
+                // Mostrar los pesos calculados para cada criterio
+                System.out.println("\nCriterios y sus pesos calculados:");
+                for (int i = 0; i < criteriaList.size(); i++) {
+                    System.out.printf("%s: %.4f%n", 
+                        criteriaList.get(i).getName(), 
+                        ahp.getWeights()[i]);
+                }
+            } else {
+                System.out.println("Warning: Inconsistent comparisons detected!");
+                System.out.println("Consistency Ratio: " + ahp.getConsistencyRatio());
             }
-
-            // Mostrar la mejor alternativa
-            System.out.println("------------------|------------------");
-            System.out.println("La mejor alternativa es: " + bestAlternative.getName());
         } catch (Exception e) {
-            System.err.println("Error al calcular la mejor alternativa: " + e.getMessage());
+            System.out.println("Error: " + e.getMessage());
         }
     }
 }
