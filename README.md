@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-This is an academic/research project titled **DMO-VNFP (Dynamic Multi-Objective Virtual Network Function Placement)**, developed at FIUNI (likely Universidad Nacional de Itapúa) as part of a CONACYT research grant (PINV18-1719).
+This is an academic/research project titled **DMO-VNFP (Dynamic Multi-Objective Virtual Network Function Placement)**, developed at FIUNI (Universidad Nacional de Itapúa - Facultad de Ingeniería) as part of a CONACYT research grant (PINV18-1719).
 
 ## Core Purpose
 
@@ -96,4 +96,5 @@ The Simulation folder contains:
 
 ## Conclusion
 
+This is a sophisticated research project that contributes to the field of **network optimization** and **evolutionary computation**, specifically addressing real-world challenges in modern virtualized network infrastructures.
 This is a sophisticated research project that contributes to the field of **network optimization** and **evolutionary computation**, specifically addressing real-world challenges in modern virtualized network
