@@ -97,4 +97,3 @@ The Simulation folder contains:
 ## Conclusion
 
 This is a sophisticated research project that contributes to the field of **network optimization** and **evolutionary computation**, specifically addressing real-world challenges in modern virtualized network infrastructures.
-This is a sophisticated research project that contributes to the field of **network optimization** and **evolutionary computation**, specifically addressing real-world challenges in modern virtualized network
