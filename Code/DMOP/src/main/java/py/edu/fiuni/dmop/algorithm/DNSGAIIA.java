@@ -67,9 +67,7 @@ public class DNSGAIIA extends NSGAII implements DynamicAlgorithm {
 
     @Override
     public void iterate() {
-
-        System.out.println("DNSGAiiA - Iterate executed: Evaluations:" + getNumberOfEvaluations());
-
+        /*
         // check for changes is the environment
         // create a temp solution for the problem, if the environment changed, 
         // then the solution will have a Variable(Permutation) of different length 
@@ -82,101 +80,76 @@ public class DNSGAIIA extends NSGAII implements DynamicAlgorithm {
         if (varPermLength != newVarPermLength) {
             stepOnChange();
         }
-
-        /*if(detection.isEnvironmentChanged(problem, StreamSupport.stream(population.spliterator(),true).toArray(Solution[]::new))){
+        */        
+        if (detection.isEnvironmentChanged(problem, StreamSupport.stream(population.spliterator(), true).toArray(Solution[]::new))) {
             stepOnChange();
-        }*/
+        }        
         super.iterate();
+        System.out.println("Algorithm Iterate method executed: Evaluations so far:" + getNumberOfEvaluations());
     }
 
     @Override
     public void stepOnChange() {
         System.out.println("Step on changed executed...");
 
-        Solution firstSolutionPop = this.population.get(0);
+        Solution firstSolution = this.population.get(0);
         Solution tmpSolution = problem.newSolution();
 
-        //int currentPermutationSize = ((Permutation) firstSolutionPop.getVariable(0)).size();
-        int newPermutationSize = ((Permutation) tmpSolution.getVariable(0)).size();
-
-        //int newObjectivesNumber = tmpSolution.getObjectives().length;
+        //int newPermutationSize = ((Permutation) tmpSolution.getVariable(0)).size();
         // Se obtienen los indices de las soluciones a ser borradas de la poblacion (aleatoriamente)
         // Luego se insertan nuevas soluciones en las posiciones de aquellas soluciones que fueron borradas.
         int[] indexesToRemove = ThreadLocalRandom.current().ints(0, population.size()).distinct().limit((int) (population.size() * this.zeta)).toArray();
         population.removeAll(Arrays.stream(indexesToRemove).boxed().map(population::get).collect(Collectors.toList()));
 
-        List<Solution> newSolutions = new ArrayList<>();
-        Stream.generate(problem::newSolution).limit(population.size()).forEach(newSolutions::add);
+        // si no ha cambiado el numero de funciones objetivo entonces no hace falta crear desde cero todas las soluciones.
+        if (tmpSolution.getNumberOfObjectives() != firstSolution.getNumberOfObjectives()) {
+            List<Solution> newSolutions = new ArrayList<>();
+            Stream.generate(problem::newSolution).limit(population.size()).forEach(newSolutions::add);
 
-        // Obtener los indices de las soluciones que no estan en el arreglo de los borrados.        
-        //Set<Integer> removedIndexesSet = IntStream.of(indexesToRemove).boxed().collect(Collectors.toSet());
-        //int[] nonRemovedIndexes = IntStream.range(0, population.size()).filter(i -> !removedIndexesSet.contains(i)).toArray();
-        for (int solIndex = 0; solIndex < population.size(); solIndex++) {
-            Solution oldSolution = population.get(solIndex);
-            Solution newSolution = newSolutions.get(solIndex);
+            for (int solIndex = 0; solIndex < population.size(); solIndex++) {
+                Solution oldSolution = population.get(solIndex);
+                Solution newSolution = newSolutions.get(solIndex);
 
-            // Make sure permutation length is the correct one. 
-            // Will need to be reduced or expanded depending on the case
-            Permutation permutation = (Permutation) oldSolution.getVariable(0);
-            int[] currentPermValues = permutation.toArray();
+                // Make sure objective functions number is the correct one. 
+                // Will need to be reduced or expanded depending on the case
+                double[] oldObjectives = oldSolution.getObjectives();
+                double[] newObjectives = newSolution.getObjectives();
 
-            int[] newPermValues = null;
+                // reduce the number of objective functions
+                if (oldObjectives.length > newObjectives.length) {
+                    //double[] newObjectives = new double[newObjectivesNumber];
+                    System.arraycopy(oldObjectives, 0, newObjectives, 0, newObjectives.length);
 
-            // Se debe reducir el tamaño de la permutation en la solucion
-            if (permutation.size() > newPermutationSize) {
-                newPermValues = IntStream.of(currentPermValues).filter(n -> n < newPermutationSize).toArray();
+                    // Increase the number of objective functions
+                } else if (oldObjectives.length < newObjectives.length) {
+                    // Aumentar el numero de funciones objetivo, los nuevos agregados seran inicializados
+                    // a un valor muy alto, considerando que solo estamos usando minimizacion.                
+                    //double[] newObjectives = DoubleStream.generate(() -> Double.MAX_VALUE).limit(newObjectivesNumber).toArray();
+                    System.arraycopy(oldObjectives, 0, newObjectives, 0, oldObjectives.length);
+                }
 
-                //Permutation newPermutation = new Permutation(newPermValues);
-                //theSolution.setVariable(0, newPermutation);
-            } else if (permutation.size() < newPermutationSize) {
-                // Aumentar el tamaño de la permutation, agregar los numeros que faltan al final
-                // Por ahora agregados en orden
-                // TODO: Agregar al final pero en orden aleatorio
-                newPermValues = IntStream.range(0, newPermutationSize).toArray(); // new int[newPermutationSize];
-                System.arraycopy(currentPermValues, 0, newPermValues, 0, currentPermValues.length);
-
-                //Permutation newPermutation = new Permutation(newPermValues);
-                //theSolution.setVariable(0, newPermutation);
+                //
+                newSolution.setObjectives(newObjectives);
+                
+                // keep using the same variable
+                newSolution.setVariable(0, oldSolution.getVariable(0));
             }
 
-            // Make sure objective functions number is the correct one. 
-            // Will need to be reduced or expanded depending on the case
-            double[] oldObjectives = oldSolution.getObjectives();
-            double[] newObjectives = newSolution.getObjectives();
+            // Clear the current population, so we can add the modified ones
+            population.clear();
 
-            // reduce the number of objective functions
-            if (oldObjectives.length > newObjectives.length) {
-                //double[] newObjectives = new double[newObjectivesNumber];
-                System.arraycopy(oldObjectives, 0, newObjectives, 0, newObjectives.length);
-
-                // The objective funcitons number remains the same or 
-                // Increase the number of objective functions
-            } else if (oldObjectives.length <= newObjectives.length) {
-                // Aumentar el numero de funciones objetivo, los nuevos agregados seran inicializados
-                // a un valor muy alto, considerando que solo estamos usando minimizacion.                
-                //double[] newObjectives = DoubleStream.generate(() -> Double.MAX_VALUE).limit(newObjectivesNumber).toArray();
-                System.arraycopy(oldObjectives, 0, newObjectives, 0, oldObjectives.length);
-            }
-
-            newSolution.setVariable(0, new Permutation(newPermValues));
-            newSolution.setObjectives(newObjectives);
+            population.addAll(newSolutions);
+            
+            newSolutions.forEach(problem::evaluate);            
         }
 
-        // Clear the current population, so we can add the modified ones
-        population.clear();
-        
-        population.addAll(newSolutions);
-        
         // Add new solutions at the end, instead of those deleted at the first step.
         Stream.generate(problem::newSolution).limit(indexesToRemove.length).forEach(population::add);
 
-        
-        /*
-        population.forEach(sol -> {
+        /*population.forEach(sol -> {
             Permutation permu = (Permutation) sol.getVariable(0);
             double[] objectives = sol.getObjectives();
             System.out.println("Fitness: " + Arrays.toString(objectives) + "  Permu: " + Arrays.toString(permu.toArray()));
-        });
-        */
+        });*/
     }
 }

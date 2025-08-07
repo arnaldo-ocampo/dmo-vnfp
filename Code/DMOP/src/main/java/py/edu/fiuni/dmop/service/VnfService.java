@@ -91,6 +91,12 @@ public class VnfService {
 
             int count = 1;
             for (int i = 0; i < permutation.size(); i++) {
+                int permValue = permutation.get(i);
+                
+                // As we are using a Permutation that could contains a greater number
+                // than the traffics, we need to make sure we are not out of the bounds of traffics list
+                if(permValue >= traffics.size()) continue;                
+                
                 Traffic traffic = traffics.get(permutation.get(i));
                 traffic.setRejectLink(0);
                 traffic.setRejectNode(0);

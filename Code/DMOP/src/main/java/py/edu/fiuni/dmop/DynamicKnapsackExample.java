@@ -15,7 +15,7 @@ import org.moeaframework.util.Vector;
 import org.apache.log4j.Logger;
 
 import py.edu.fiuni.dmop.DynamicPlacement;
-import py.edu.fiuni.dmop.algorithm.StandardDynamicAlgorithms;
+import py.edu.fiuni.dmop.algorithm.DynamicAlgorithmsProvider;
 import py.edu.fiuni.dmop.problem.DynamicKnapsack;
 import py.edu.fiuni.dmop.util.Configurations;
 import py.edu.fiuni.dmop.util.Utility;
@@ -54,7 +54,7 @@ public class DynamicKnapsackExample {
             properties.put("frequencyOfChange", 5000);
             properties.put("severityOfChange", 1d);
             
-            AlgorithmFactory.getInstance().addProvider(new StandardDynamicAlgorithms());
+            AlgorithmFactory.getInstance().addProvider(new DynamicAlgorithmsProvider());
             
             // solve using NSGA-II
             NondominatedPopulation result = new Executor()
