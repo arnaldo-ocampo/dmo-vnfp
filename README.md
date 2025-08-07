@@ -297,7 +297,7 @@ public class TechnologyEvaluationExample {
 | **Datos Requeridos** | Matriz + Pesos | Matriz + Pesos | Matriz + Comparaciones | Matriz + Pesos + Funciones |
 | **Manejo de Inconsistencias** | No | No | Sí | Parcial |
 | **Ranking Completo** | Sí | Sí | Sí | Sí |
-| **Facilidad de Implementación** | Media | Alta | Baja | Media |
+| **Dificultad de Implementación** | Media | Baja | Alta | Media |
 | **Transparencia** | Media | Alta | Media | Baja |
 | **Escalabilidad** | Buena | Excelente | Limitada | Buena |
 
