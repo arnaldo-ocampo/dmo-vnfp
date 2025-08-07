@@ -1,0 +1,81 @@
+DNSGAII-A:
+    Hypervolume: 
+        Aggregate: 0.3535102327941204
+        Min: 0.262327896937034
+        Median: 0.29790121726432695
+        Max: 0.33347453759161994
+        Count: 2
+        Indifferent: []
+        Values: [0.33347453759161994, 0.262327896937034]
+    GenerationalDistance: 
+        Aggregate: 0.0
+        Min: 0.006553745943050409
+        Median: 0.014971848151569357
+        Max: 0.023389950360088303
+        Count: 2
+        Indifferent: []
+        Values: [0.006553745943050409, 0.023389950360088303]
+    InvertedGenerationalDistance: 
+        Aggregate: 0.0
+        Min: 0.07750363167061149
+        Median: 0.10166777915907274
+        Max: 0.12583192664753398
+        Count: 2
+        Indifferent: []
+        Values: [0.07750363167061149, 0.12583192664753398]
+    AdditiveEpsilonIndicator: 
+        Aggregate: 0.0
+        Min: 0.1572327044025158
+        Median: 0.1823899371069183
+        Max: 0.20754716981132082
+        Count: 2
+        Indifferent: []
+        Values: [0.1572327044025158, 0.20754716981132082]
+    MaximumParetoFrontError: 
+        Aggregate: 0.0
+        Min: 0.2019610624562529
+        Median: 0.2940807300846109
+        Max: 0.3862003977129689
+        Count: 2
+        Indifferent: []
+        Values: [0.2019610624562529, 0.3862003977129689]
+    Spacing: 
+        Aggregate: 816.1191655990546
+        Min: 795.5371170207173
+        Median: 802.1640419563271
+        Max: 808.7909668919368
+        Count: 2
+        Indifferent: []
+        Values: [795.5371170207173, 808.7909668919368]
+    Contribution: 
+        Aggregate: 1.0
+        Min: 0.36764705882352944
+        Median: 0.5
+        Max: 0.6323529411764706
+        Count: 2
+        Indifferent: []
+        Values: [0.6323529411764706, 0.36764705882352944]
+    R1Indicator: 
+        Aggregate: 0.0
+        Min: 0.0
+        Median: 0.0
+        Max: 0.0
+        Count: 2
+        Indifferent: []
+        Values: [0.0, 0.0]
+    R2Indicator: 
+        Aggregate: 15945.1164121962
+        Min: 15945.169423307309
+        Median: 16145.518134004622
+        Max: 16345.866844701937
+        Count: 2
+        Indifferent: []
+        Values: [16345.866844701937, 15945.169423307309]
+    R3Indicator: 
+        Aggregate: 17332.37646668614
+        Min: 17332.434543537966
+        Median: 17550.197642862688
+        Max: 17767.960742187413
+        Count: 2
+        Indifferent: []
+        Values: [17767.960742187413, 17332.434543537966]
