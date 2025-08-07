@@ -1,14 +1,19 @@
 package py.edu.fiuni.dmop.decision.topsis;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import java.util.ArrayList;
 import java.util.List;
 
 /*
- * 
+ *
  * @author danigpam
  * https://github.com/danigpam
- * 
+ *
  */
+@Setter
+@Getter
 public class Alternative {
 
     private String name;
@@ -30,22 +35,6 @@ public class Alternative {
         super();
     }
 
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public List<CriteriaValue> getCriteriaValues() {
-        return criteriaValues;
-    }
-
-    public void setCriteriaValues(List<CriteriaValue> criteriaValues) {
-        this.criteriaValues = criteriaValues;
-    }
-
     public void addCriteriaValue(CriteriaValue criteriaValue) {
         if (criteriaValues == null) {
             criteriaValues = new ArrayList<CriteriaValue>();
@@ -60,11 +49,4 @@ public class Alternative {
         this.criteriaValues.add(new CriteriaValue(criteria, value));
     }
 
-    public double getCalculatedPerformanceScore() {
-        return calculatedPerformanceScore;
-    }
-
-    protected void setCalculatedPerformanceScore(double calculatedPerformanceScore) {
-        this.calculatedPerformanceScore = calculatedPerformanceScore;
-    }
 }

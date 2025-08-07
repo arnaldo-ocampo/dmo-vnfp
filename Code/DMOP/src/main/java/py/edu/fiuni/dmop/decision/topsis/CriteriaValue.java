@@ -1,11 +1,16 @@
 package py.edu.fiuni.dmop.decision.topsis;
 
+import lombok.Getter;
+import lombok.Setter;
+
 /*
- * 
+ *
  * @author danigpam
  * https://github.com/danigpam
- * 
+ *
  */
+@Setter
+@Getter
 public class CriteriaValue {
 
     private Criteria criteria;
@@ -21,19 +26,4 @@ public class CriteriaValue {
         super();
     }
 
-    public Criteria getCriteria() {
-        return criteria;
-    }
-
-    public void setCriteria(Criteria criteria) {
-        this.criteria = criteria;
-    }
-
-    public double getValue() {
-        return value;
-    }
-
-    public void setValue(double value) {
-        this.value = value;
-    }
 }

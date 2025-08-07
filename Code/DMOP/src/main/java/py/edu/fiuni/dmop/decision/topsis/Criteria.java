@@ -1,11 +1,16 @@
 package py.edu.fiuni.dmop.decision.topsis;
 
+import lombok.Getter;
+import lombok.Setter;
+
 /*
- * 
+ *
  * @author danigpam
  * https://github.com/danigpam
- * 
+ *
  */
+@Setter
+@Getter
 public class Criteria {
 
     private String name;
@@ -29,27 +34,4 @@ public class Criteria {
         this.negative = negative;
     }
 
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public double getWeight() {
-        return weight;
-    }
-
-    public void setWeight(double weight) {
-        this.weight = weight;
-    }
-
-    public boolean isNegative() {
-        return negative;
-    }
-
-    public void setNegative(boolean negative) {
-        this.negative = negative;
-    }
 }
