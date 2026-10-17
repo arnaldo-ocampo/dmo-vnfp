@@ -2,8 +2,10 @@ package py.edu.fiuni.dmop.dto;
 
 import py.edu.fiuni.dmop.dto.NFVdto.Link;
 import py.edu.fiuni.dmop.dto.NFVdto.Node;
+import py.edu.fiuni.dmop.dto.NFVdto.Traffic;
 
 import java.io.Serializable;
+import java.util.List;
 import java.util.Map;
 
 public class ResultGraphMap implements Serializable {
@@ -12,6 +14,7 @@ public class ResultGraphMap implements Serializable {
 
     private Map<String, Node> nodesMap;
     private Map<String, Link> linksMap;
+    private List<Traffic> traffics;
 
     public Map<String, Node> getNodesMap() {
         return nodesMap;
@@ -27,6 +30,14 @@ public class ResultGraphMap implements Serializable {
 
     public void setLinksMap(Map<String, Link> linksMap) {
         this.linksMap = linksMap;
+    }
+
+    public List<Traffic> getTraffics() {
+        return traffics;
+    }
+
+    public void setTraffics(List<Traffic> traffics) {
+        this.traffics = traffics;
     }
 
     @Override

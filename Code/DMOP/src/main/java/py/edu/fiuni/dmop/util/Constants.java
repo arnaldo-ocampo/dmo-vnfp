@@ -28,4 +28,7 @@ public class Constants {
     // TODO:: Order the actual traffics list instead of use this hardcoded version
     public static int[] WINDOWS_TRAFFICS_COUNT_SORTED = {0, 6, 9, 2, 5, 4, 1, 7, 3, 8};
 
+    // Servidor saturado: CPU o RAM por encima de este valor
+    public static final double SATURATION_THRESHOLD = 0.8;
+
 }

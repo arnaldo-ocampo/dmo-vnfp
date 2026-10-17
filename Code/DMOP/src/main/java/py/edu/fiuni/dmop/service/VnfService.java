@@ -70,6 +70,8 @@ public class VnfService {
 
             resultGraphMap.setNodesMap(nodesMap);
             resultGraphMap.setLinksMap(linksMap);
+            // traficos procesados, para saber cuales se rechazaron
+            resultGraphMap.setTraffics(traffics);
 
             return resultGraphMap;
         } catch (Exception e) {

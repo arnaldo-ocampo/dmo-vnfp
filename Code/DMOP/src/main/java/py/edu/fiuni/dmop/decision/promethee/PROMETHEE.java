@@ -61,6 +61,10 @@ public class PROMETHEE extends DecisionMaker {
                     for (int k = 0; k < criteria.size(); k++) {
                         double diff = alternatives.get(i).getCriteriaValues().get(k).getValue() -
                                 alternatives.get(j).getCriteriaValues().get(k).getValue();
+                        //Criterio a minimizar: se invierte la diferencia
+                        if (criteria.get(k).isNegative()) {
+                            diff = -diff;
+                        }
                         preference += weights[k] * Math.max(0, diff); // Linear preference function
                     }
                     preferenceMatrix[i][j] = preference;

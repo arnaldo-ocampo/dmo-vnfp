@@ -29,7 +29,7 @@ public class DecisionMakerFactory {
 
             case "ahp":
                 AHP ahp = new AHP(alternatives, criteria);
-                ahp.setPairwiseComparisonMatrix(createDefaultComparisonMatrix(criteria.size()));
+                ahp.setPairwiseComparisonMatrix(createComparisonMatrixFromWeights(criteria));
                 return ahp;
 
             default:
@@ -37,11 +37,13 @@ public class DecisionMakerFactory {
         }
     }
 
-    private static double[][] createDefaultComparisonMatrix(int size) {
+    //Matriz de comparacion a partir de los pesos: a[i][j] = w[i] / w[j]
+    private static double[][] createComparisonMatrixFromWeights(List<Criteria> criteria) {
+        int size = criteria.size();
         double[][] matrix = new double[size][size];
         for (int i = 0; i < size; i++) {
             for (int j = 0; j < size; j++) {
-                matrix[i][j] = (i == j) ? 1.0 : 0.5; // Default values
+                matrix[i][j] = criteria.get(i).getWeight() / criteria.get(j).getWeight();
             }
         }
         return matrix;

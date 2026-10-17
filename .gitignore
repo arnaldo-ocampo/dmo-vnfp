@@ -38,3 +38,7 @@ Code/DMOP/src/main/resources/Traffic/Traffic_7.txt
 Code/DMOP/src/main/resources/Traffic/Traffic_8.txt
 Code/DMOP/src/main/resources/Traffic/Traffic_9.txt
 .idea
+
+# Carpetas locales de ejecucion y clases copiadas por los scripts
+run-*/
+Simulation/comparacion-algoritmos/classes/

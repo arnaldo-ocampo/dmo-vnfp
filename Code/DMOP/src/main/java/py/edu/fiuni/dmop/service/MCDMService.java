@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Scanner;
 import org.apache.log4j.Logger;
 import org.moeaframework.core.NondominatedPopulation;
@@ -38,12 +39,30 @@ public class MCDMService {
             NetworkConditionEnum networkCondition,
             String algorithm) throws DecisionMakerException {
 
+        //Pesos iguales
+        return calculateOptimalSolution(result, networkCondition, algorithm, null);
+    }
+
+    /**
+     *
+     * @param weights peso de cada objetivo (los que faltan valen 1), null = iguales
+     */
+    public Solution calculateOptimalSolution(
+            NondominatedPopulation result,
+            NetworkConditionEnum networkCondition,
+            String algorithm,
+            Map<ObjectiveFunctionEnum, Double> weights) throws DecisionMakerException {
+
         List<ObjectiveFunctionEnum> sceneObjectives = SceneObjectiveFunctions.SceneMap.get(networkCondition);
 
-        // Crear criterios con pesos iguales
-        double weight = 1.0 / sceneObjectives.size();
+        double totalWeight = 0;
+        for (ObjectiveFunctionEnum objFuncEnum : sceneObjectives) {
+            totalWeight += weightOf(objFuncEnum, weights);
+        }
+
         List<Criteria> criteriaList = new ArrayList<>();
         for (ObjectiveFunctionEnum objFuncEnum : sceneObjectives) {
+            double weight = weightOf(objFuncEnum, weights) / totalWeight;
             criteriaList.add(new Criteria(objFuncEnum.getName(), weight, objFuncEnum.isMinimizable()));
         }
 
@@ -69,6 +88,10 @@ public class MCDMService {
         System.out.println("The optimal solution score is: " + optimalAlternative.getCalculatedPerformanceScore());
 
         return best;
+    }
+
+    private static double weightOf(ObjectiveFunctionEnum objective, Map<ObjectiveFunctionEnum, Double> weights) {
+        return weights == null ? 1.0 : weights.getOrDefault(objective, 1.0);
     }
 
     /**
